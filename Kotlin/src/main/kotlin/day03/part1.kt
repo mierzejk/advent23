@@ -1,8 +1,12 @@
+package day03
+
 import java.io.File
 
 class Number (val value: Int, range: IntRange) {
     val from by range::first
     val to by range::last
+
+    operator fun times (other: Number) = value * other.value
 }
 
 val numbers = Regex("""\d+""")
@@ -10,15 +14,10 @@ fun loadNumbers(line: String) =
     numbers.findAll(line).map { Number(it.value.toInt(), it.range) }
 
 val window = ArrayDeque<List<Int>>(3)
-fun loadSymbols(line: String) {
-    if (3 == window.size)
-        window.removeFirst()
-
-    val symbols = line.mapIndexedNotNull { index, c -> when(c.code) {
-        46, in 48..57 -> null  // . → 46, 0..9 → 48..57
-        else -> index } }
-    window.addLast(symbols)
-}
+fun loadSymbols(line: String) = window.apply { if (3 == size) removeFirst() }.addLast(
+    line.mapIndexedNotNull { index, c -> when(c.code) {
+        46, in 48..57 -> null // . → 46, 0..9 → 48..57
+        else -> index } })
 
 fun adjacent(number: Number) =
     with(number) { window.flatten().any { from - 2 < it && it < to + 2 } }
@@ -28,10 +27,11 @@ fun main() {
     val numbers = object: Sequence<Int> {
         private var values: Sequence<Number> = emptySequence()
 
-        fun loadFrom(line: String) = run { values = loadNumbers(line) }
+        fun loadFrom(line: String) { values = loadNumbers(line) }
         override fun iterator(): Iterator<Int> = values.filter(::adjacent).map(Number::value).iterator()
     }
 
+    @Suppress("DuplicatedCode")
     fun Sequence<String>.toNumbers() = sequence {
         for (line in this@toNumbers.onEach(::loadSymbols)) {
             if (2 < window.size)

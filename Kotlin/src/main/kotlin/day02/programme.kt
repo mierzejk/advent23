@@ -1,3 +1,5 @@
+package day02
+
 import java.io.File
 
 operator fun MatchResult.get(name: String) = this.groups[name]!!.value
