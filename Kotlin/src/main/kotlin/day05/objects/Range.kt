@@ -1,10 +1,12 @@
 package day05.objects
 
-internal class Range(private val destinationStart: ULong, sourceStart: ULong, length: ULong) {
+internal class Range(destinationStart: ULong, sourceStart: ULong, length: ULong) {
     private val sourceRange = sourceStart..<sourceStart+length
+    private val destinationRange = destinationStart..<destinationStart+length
+    private val diff = destinationStart - sourceStart
 
-    operator fun contains(value: ULong) = value in sourceRange
-    operator fun get(value: ULong) = if (value in this) value - sourceRange.first + destinationStart else null
+    operator fun get(value: ULong) = if (value in sourceRange) value + diff else null
+    fun reverse(value: ULong) = if (value in destinationRange) value - diff else null
 
     companion object {
         private val rangeRe = Regex("""\D*(?<destination>\d+)\s+(?<source>\d+)\s+(?<length>\d+)\D*""")
