@@ -59,7 +59,17 @@ fun main() {
         .map { (a, b) -> a..<a+b }
     var minLocation = ULong.MAX_VALUE
 
-    fun<T> compute(n: ULong, lock: (action: () -> Unit) -> T) {
+    var timeInMillis = measureTimeMillis {
+        for (i in 0UL..ULong.MAX_VALUE)
+            if (allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it }) {
+                minLocation = i
+                break
+            }
+    }
+    println("Part II sequential [${timeInMillis / 1000.0} sec]: $minLocation")
+    minLocation = ULong.MAX_VALUE
+
+    fun<T> compute(n: ULong, step: ULong, lock: (action: () -> Unit) -> T) {
         var i = n
         while (i < minLocation) {
             if (allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it }) {
@@ -68,70 +78,38 @@ fun main() {
                         minLocation = i
                 }
             }
-            i += 4UL
+            i += step
         }
     }
 
-    fun parallel(): ULong {
+    fun parallel() {
         val mutex = ReentrantLock()
         (0UL..3UL).map { n ->
             thread {
-                var i = n
-                while (i < minLocation) {
-                    if (allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it }) {
-                        mutex.withLock {
-                            if (i < minLocation)
-                                minLocation = i
-                        }
-                    }
-                    i += 4UL
-                }
+                compute(n, 4UL, mutex::withLock)
             }
         }.forEach(Thread::join)
-
-        return minLocation
     }
 
-    var result: ULong
-    var timeInMillis = measureTimeMillis {
-        result = parallel()
+    timeInMillis = measureTimeMillis {
+        parallel()
     }
-    println("Part II parallel [${timeInMillis / 1000.0} sec]: $result")
+    println("Part II parallel [${timeInMillis / 1000.0} sec]: $minLocation")
+    minLocation = ULong.MAX_VALUE
 
-    suspend fun coroutines(): ULong {
-        var minLocation = ULong.MAX_VALUE
+    suspend fun coroutines() {
         val mutex = Mutex()
         coroutineScope {
             (0UL..3UL).map { n ->
                 async {
-                    var i = n
-                    while (i < minLocation) {
-                        if (allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it }) {
-                            mutex.withLock {
-                                if (i < minLocation)
-                                    minLocation = i
-                            }
-                        }
-                        i += 4UL
-                    }
+                    compute(n, 4UL) { launch { mutex.withLock { it() } } }
                 }
             }.awaitAll()
         }
-
-        return minLocation
     }
 
     timeInMillis = measureTimeMillis {
-        result = runBlocking(Dispatchers.Default) { coroutines() }
+        runBlocking(Dispatchers.Default) { coroutines() }
     }
-    println("Part II coroutines [${timeInMillis / 1000.0} sec]: $result")
-
-    timeInMillis = measureTimeMillis {
-        for (i in 0UL..ULong.MAX_VALUE)
-            if (allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it }) {
-                result = i
-                break
-            }
-    }
-    println("Part II sequential [${timeInMillis / 1000.0} sec]: $result")
+    println("Part II coroutines [${timeInMillis / 1000.0} sec]: $minLocation")
 }
