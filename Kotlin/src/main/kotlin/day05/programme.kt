@@ -9,12 +9,14 @@ fun main() {
     val seeds = ArrayList<ULong>()
     val mappings = HashMap<Mapping, List<Range>>()
 
-    fun Almanac.getMap(value: ULong, final: Almanac): ULong =
-        mappings.keys.first { this == it.source }.run {mappings[this]!!.rangeMap(value).let {
-            when (destination) {
-                final -> it
-                else -> destination.getMap(it, final) } } }
-
+    tailrec fun Almanac.getMap(value: ULong, final: Almanac): ULong {
+        with (mappings.keys.first { this == it.source }.let { object {
+            val output = mappings[it]!!.rangeMap(value)
+            val dst = it.destination
+        } }) {
+            return if (dst == final) output else dst.getMap(output, final)
+        }
+    }
 
     File("src/main/resources/day_5_input.txt").useLines { file -> file.iterator().run {
         Regex("""\d+""").findAll(next()).mapTo(seeds) { it.value.toULong() }
