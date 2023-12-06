@@ -13,6 +13,7 @@ import kotlin.system.measureTimeMillis
 private fun List<Range>.rangeMap(value: ULong) = this.firstNotNullOfOrNull { it[value] } ?: value
 private fun List<Range>.reverseRangeMap(value: ULong) = this.firstNotNullOfOrNull { it.reverse(value) } ?: value
 
+@Suppress("DuplicatedCode")
 fun main() {
     val seeds = ArrayList<ULong>()
     val mappings = HashMap<Mapping, List<Range>>()
@@ -57,59 +58,57 @@ fun main() {
 
     val allSeeds = (seeds.filterIndexed { i, _ -> 0 == i%2 } zip seeds.filterIndexed { i, _ -> 1 == i%2 })
         .map { (a, b) -> a..<a+b }
-    var minLocation = ULong.MAX_VALUE
+    val threadsNumber = 4UL
 
-    var timeInMillis = measureTimeMillis {
-        for (i in 0UL..ULong.MAX_VALUE)
-            if (allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it }) {
-                minLocation = i
-                break
-            }
+    fun measure(type: String, func: () -> ULong) {
+        var result: ULong
+        println("Part II $type [${measureTimeMillis { result = func() } / 1000.0} sec]: $result")
     }
-    println("Part II sequential [${timeInMillis / 1000.0} sec]: $minLocation")
-    minLocation = ULong.MAX_VALUE
 
-    fun<T> compute(n: ULong, step: ULong, lock: (action: () -> Unit) -> T) {
-        var i = n
-        while (i < minLocation) {
-            if (allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it }) {
-                lock {
-                    if (i < minLocation)
-                        minLocation = i
-                }
-            }
-            i += step
+    measure("sequential") {
+        (0UL .. ULong.MAX_VALUE).first { i ->
+            allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it } }
         }
-    }
 
-    fun parallel() {
+    fun parallel() : ULong {
+        var minLocation = ULong.MAX_VALUE
         val mutex = ReentrantLock()
-        (0UL..3UL).map { n ->
+        0UL.rangeUntil(threadsNumber).map { n ->
             thread {
-                compute(n, 4UL, mutex::withLock)
+                var i = n
+                while (i < minLocation) {
+                    if (allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it })
+                        mutex.withLock {
+                            if (i < minLocation)
+                                minLocation = i
+                        }
+                    i += threadsNumber
+                }
             }
         }.forEach(Thread::join)
+
+        return minLocation
     }
 
-    timeInMillis = measureTimeMillis {
-        parallel()
-    }
-    println("Part II parallel [${timeInMillis / 1000.0} sec]: $minLocation")
-    minLocation = ULong.MAX_VALUE
+    measure("parallel threads", ::parallel)
 
-    suspend fun coroutines() {
+    suspend fun coroutines(scope: CoroutineScope): ULong {
+        var minLocation = ULong.MAX_VALUE
         val mutex = Mutex()
-        coroutineScope {
-            (0UL..3UL).map { n ->
-                async {
-                    compute(n, 4UL) { launch { mutex.withLock { it() } } }
-                }
-            }.awaitAll()
-        }
+        0UL.rangeUntil(threadsNumber).map { n -> scope.launch {
+            var i = n
+            while (i < minLocation) {
+                if (allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it })
+                    mutex.withLock {
+                        if (i < minLocation)
+                            minLocation = i
+                    }
+                i += threadsNumber
+            } }
+        }.joinAll()
+
+        return minLocation
     }
 
-    timeInMillis = measureTimeMillis {
-        runBlocking(Dispatchers.Default) { coroutines() }
-    }
-    println("Part II coroutines [${timeInMillis / 1000.0} sec]: $minLocation")
+    measure("coroutines") { runBlocking(Dispatchers.Default, ::coroutines) }
 }
