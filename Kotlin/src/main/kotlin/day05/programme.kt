@@ -75,11 +75,11 @@ fun main() {
     }
 
     val allSeedsLong = allSeeds.map{ LongRange(it.first.toLong(), it.last.toLong()) }
-    measure("range map") {
+    measure("range map") { // 0.005 sec
         rangeMap(Almanac.seed, allSeedsLong).first().first.toULong()
     }
 
-    measure("sequential") {
+    measure("sequential") { // 251.658 sec
         (0UL .. ULong.MAX_VALUE).first { i ->
             allSeeds.any { Almanac.location.getReverseMap(i, Almanac.seed) in it } }
         }
@@ -104,7 +104,7 @@ fun main() {
         return minLocation
     }
 
-    measure("parallel threads", ::parallel)
+    measure("parallel threads", ::parallel) // 74.518 sec
 
     suspend fun coroutines(scope: CoroutineScope): ULong {
         var minLocation = ULong.MAX_VALUE
@@ -124,5 +124,5 @@ fun main() {
         return minLocation
     }
 
-    measure("coroutines") { runBlocking(Dispatchers.Default, ::coroutines) }
+    measure("coroutines") { runBlocking(Dispatchers.Default, ::coroutines) } // 84.618 sec
 }
