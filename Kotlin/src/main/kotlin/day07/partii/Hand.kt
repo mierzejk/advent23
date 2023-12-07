@@ -50,11 +50,6 @@ enum class Type(val strength: Byte) {
                 else -> others.groupingBy { it }.eachCount().maxBy { (_, count) -> count }.key.let { most ->
                     getType(List(jokers.size) { most } + others) }
             }
-//            if (5 == jokers.size)
-//                return Five
-//
-//            val most = others.groupingBy { it }.eachCount().maxBy { (_, count) -> count }.key
-//            return getType(List(jokers.size) { most } + others)
         }
     }
 }
