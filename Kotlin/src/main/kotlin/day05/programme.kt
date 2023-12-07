@@ -47,6 +47,9 @@ fun main() {
     seeds.getLowest { println("Part I: $it") }
 
     // Part II
+    val mappingRanges = mappings.map { (mapping, ranges) ->
+        MappingRange(mapping, ranges) }.associateBy(MappingRange::source)
+
     tailrec fun Almanac.getReverseMap(value: ULong, final: Almanac): ULong {
         with (mappings.keys.first { this == it.destination }.let { object {
             val output = mappings[it]!!.reverseRangeMap(value)
@@ -63,6 +66,17 @@ fun main() {
     fun measure(type: String, func: () -> ULong) {
         var result: ULong
         println("Part II $type [${measureTimeMillis { result = func() } / 1000.0} sec]: $result")
+    }
+
+    tailrec fun rangeMap(almanac: Almanac, input: Collection<LongRange>): Collection<LongRange> {
+        with(mappingRanges[almanac]) {
+            return if (null == this) input else rangeMap(destination, mapRanges(input))
+        }
+    }
+
+    val allSeedsLong = allSeeds.map{ LongRange(it.first.toLong(), it.last.toLong()) }
+    measure("range map") {
+        rangeMap(Almanac.seed, allSeedsLong).first().first.toULong()
     }
 
     measure("sequential") {
