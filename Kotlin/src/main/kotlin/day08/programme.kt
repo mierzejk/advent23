@@ -40,21 +40,13 @@ fun main() {
         this.asSequence().map { Node(it) }.filterNotNull().associateByTo(nodes, Node::id)
     } }
 
-    fun getDirections() = sequence {
-        while(true)
-            yieldAll(route)
-    }
-
-    fun getSteps(start: Node): Int {
-        var node = start
-        for ((i, direction) in getDirections().withIndex()) {
-            if (node.isFinish)
-                return i
-
-            node = node.next(direction).let(nodes::get)!!
+    fun getDirections(start: Node) = with(object { var node = start }) {
+        sequence {while (true)
+            yieldAll(route.asSequence().map { node.apply { node = next(it).let(nodes::get)!! } })
         }
-        throw IllegalArgumentException()
     }
+
+    fun getSteps(start: Node) = getDirections(start).indexOfFirst(Node::isFinish)
 
     // Part I
     println(getSteps(nodes["AAA"]!!))
@@ -62,16 +54,9 @@ fun main() {
     // Part II
     tailrec fun GCF(a: ULong, b: ULong): ULong = if (0UL == b) a else GCF(b, a%b)
     fun LCM(a: ULong, b: ULong) = a * (b / GCF(a, b))
-    fun Collection<ULong>.LCM(): ULong {
-        if (isEmpty())
-            throw IllegalArgumentException()
-
-        val iter = this.iterator()
-        var result = iter.next()
-        iter.forEachRemaining { result = LCM(result, it) }
-        return result
+    fun LCM(values: Collection<ULong>) = with(values.iterator()) {
+        object { var result = next() }.apply { forEachRemaining { result = LCM(result, it) } }.result
     }
 
-    val steps = nodes.values.filter(Node::isStarting).map(::getSteps).map(Int::toULong)
-    println(steps.LCM())
+    nodes.values.filter(Node::isStarting).map(::getSteps).map(Int::toULong).let(::LCM).also(::println)
 }
