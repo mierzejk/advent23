@@ -10,7 +10,7 @@ internal enum class Direction {
     }
 }
 
-internal data class Node(val id: String, val left: String, val right: String) {
+internal data class Node(val id: String, private val left: String, private val right: String) {
     val isStarting = 'A' == id.last()
     val isFinish = 'Z' == id.last()
 
