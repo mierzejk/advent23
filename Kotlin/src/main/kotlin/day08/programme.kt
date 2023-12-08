@@ -32,15 +32,15 @@ internal data class Node(val id: String, private val left: String, private val r
 
 @Suppress("FunctionName")
 fun main() {
-    var route: Collection<Direction> = emptyList()
     val nodes = HashMap<String, Node>()
-    File("src/main/resources/day_8_input.txt").useLines { file -> file.iterator().run {
-        route = next().map { Direction(it) }
+    val route = File("src/main/resources/day_8_input.txt").useLines { file -> file.iterator().run {
+        val route = next().map { Direction(it) }
         this.asSequence().map { Node(it) }.filterNotNull().associateByTo(nodes, Node::id)
+        route
     } }
 
     fun getDirections(start: Node) = with(object { var node = start }) {
-        sequence {while (true)
+        sequence { while (true)
             yieldAll(route.asSequence().map { node.apply { node = next(it).let(nodes::get)!! } })
         }
     }
