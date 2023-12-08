@@ -12,6 +12,9 @@ internal enum class Direction {
 }
 
 internal data class Node(val id: String, val left: String, val right: String) {
+    val isStarting = 'A' == id.last()
+    val isFinish = 'Z' == id.last()
+
     fun next(direction: Direction) = when (direction) {
         Direction.L -> left
         Direction.R -> right
@@ -28,6 +31,7 @@ internal data class Node(val id: String, val left: String, val right: String) {
     }
 }
 
+@Suppress("FunctionName")
 fun main() {
     var route: Collection<Direction> = emptyList()
     val nodes = HashMap<String, Node>()
@@ -41,14 +45,33 @@ fun main() {
             yieldAll(route)
     }
 
-    var node = nodes["AAA"]!!
-    val finish = nodes["ZZZ"]!!
-    for ((i, direction) in getDirections().withIndex()) {
-        if (node === finish) {
-            println(i)
-            break
-        }
+    fun getSteps(start: Node): Int {
+        var node = start
+        for ((i, direction) in getDirections().withIndex()) {
+            if (node.isFinish)
+                return i
 
-        node = node.next(direction).let(nodes::get)!!
+            node = node.next(direction).let(nodes::get)!!
+        }
+        throw IllegalArgumentException()
     }
+
+    // Part I
+    println(getSteps(nodes["AAA"]!!))
+
+    // Part II
+    tailrec fun GCF(a: ULong, b: ULong): ULong = if (0UL == b) a else GCF(b, a%b)
+    fun LCM(a: ULong, b: ULong) = a * (b / GCF(a, b))
+    fun Collection<ULong>.LCM(): ULong {
+        if (isEmpty())
+            throw IllegalArgumentException()
+
+        val iter = this.iterator()
+        var result = iter.next()
+        iter.forEachRemaining { result = LCM(result, it) }
+        return result
+    }
+
+    val steps = nodes.values.filter(Node::isStarting).map(::getSteps).map(Int::toULong)
+    println(steps.LCM())
 }
