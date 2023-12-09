@@ -6,7 +6,7 @@ fun getPrediction(collection: List<Long>): Long = with (collection) {
     if (1 == toSet().size)
         get(0)
     else
-        last() + getPrediction(collection.zipWithNext().map { (a, b) -> b - a })
+        get(size - 1) + getPrediction(collection.zipWithNext().map { (a, b) -> b - a })
     }
 
 fun main() {
