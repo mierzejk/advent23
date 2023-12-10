@@ -25,10 +25,15 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         }
     }
 
-    inner class Segment(val index: Int, private val dir: Int, val symbol: Char = list[index]) {
+    inner class Segment(val index: Int, private val dir: Int) {
+        var symbol: Char = list[index]
+            set(value) { validate(value).also { field = it } }
+
+        init  { validate() }
+
         fun next() =
-            next(index, index - dir).let { (direction, symbol) -> with(index+direction) {
-                if (this < 0 || lastIndex < this) this.raise() else Segment(this, direction, symbol) } }
+            next(index, index - dir).let { with(index + it) {
+                if (this < 0 || lastIndex < this) this.raise() else Segment(this, it) } }
 
         override fun equals(other: Any?) = when {
             this === other -> true
@@ -46,9 +51,21 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
             direction.Left -> '←'
             else -> throw IllegalArgumentException()
         }.let { "$it (${index / stride},${index % stride}): $symbol" }
+
+        private fun validate(smb: Char = symbol) = with(direction) {
+            when (smb) {
+                '|' -> listOf(Down, Up)
+                '-' -> listOf(Left, Right)
+                'L' -> listOf(Down, Left)
+                '7' -> listOf(Right, Up)
+                'J' -> listOf(Down, Right)
+                'F' -> listOf(Left, Up)
+                'S' -> listOf(Up, Right, Down, Left)
+                else -> throw IllegalArgumentException(this@Segment.toString())
+            } }.also { assert(dir in it) }.let { smb }
     }
 
-    fun ArrayDeque<Int>.next(cell: Int) = next(cell, last()).let { (it, _) -> cell + it }.also {
+    fun ArrayDeque<Int>.next(cell: Int) = next(cell, last()).let { cell + it }.also {
         if (it < 0 || this@Diagram.lastIndex < it) it.raise() }.also { this.addLast(cell) }
 
     fun loop(): Int {
@@ -70,9 +87,10 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
     }
 
     fun area() {
-        val perimeter = getPerimeter()
-        var segment = perimeter.maxBy(Segment::index)
-        print(segment)
+        var perimeter = getPerimeter()
+        val cornerIndex = perimeter.indexOfMaxBy(Segment::index)
+        perimeter = perimeter.drop(cornerIndex) + perimeter.take(cornerIndex)
+        print(perimeter[0])
     }
 
     private fun Int.raise(): Nothing =
@@ -84,7 +102,15 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         do {
             segment = segment.next().also(::addLast)
         } while (start != segment.index)
-        assert('S' == segment.symbol)
+        segment.apply {
+            assert('S' == symbol)
+            symbol = when(index - a) {
+                stride -> when(b - index) { -1 -> 'J'; 1 -> 'L'; stride -> '|'; else -> throw IllegalArgumentException() }
+                1 -> when(b - index) { 1 -> '-'; stride -> '7'; else -> throw IllegalArgumentException() }
+                -1 -> when(b - index) { stride -> 'F'; else -> throw IllegalArgumentException()}
+                else -> throw IllegalArgumentException()
+            }
+        }
     }
 
     private fun next(cell: Int, previous: Int) =
@@ -98,7 +124,7 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
                 'J' -> if (adjacent) Up else Left
                 'F' -> if (adjacent) Down else Right
                 else -> cell.raise()
-        }.let { it to symbol } }
+        } }
 
     private fun next() = listOf(
         start - stride to setOf('|', 'F', '7'),
@@ -108,6 +134,8 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         first in 0..lastIndex && list[first] in second
     } }.map { it.first }.apply { assert(2 == size && get(0) < get(1)) }
 }
+
+internal fun<T, R: Comparable<R>> List<T>.indexOfMaxBy(selector: (T) -> R) = this.indexOf(this.maxBy(selector))
 
 fun main() {
     val input = File("src/main/resources/test.txt").readLines()
