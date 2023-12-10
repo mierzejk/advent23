@@ -25,8 +25,10 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         }
     }
 
-    inner class Segment(val index: Int, private val offset: Int) {
-        operator fun invoke() = list[index + offset]
+    inner class Segment(val index: Int, private val direction: Int) {
+        fun next() =
+            next(index, index - direction).let { direction -> with(index+direction) {
+                if (this < 0 || lastIndex < this) this.raise() else Segment(this, direction) } }
 
         override fun equals(other: Any?) = when {
             this === other -> true
@@ -61,20 +63,17 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
 
     fun area() {
         val perimeter = getPerimeter()
-        var cell = perimeter.max()
+        println(perimeter.size)
     }
 
     private fun Int.raise(): Nothing =
         throw IllegalArgumentException("(${this / stride},${this % stride}): ${list[this]}")
 
-    private fun getPerimeter(): List<Int> {
-        val perimeter = ArrayDeque<Int>()
-        var cell = next()[0]
-        do
-            cell = perimeter.next(cell)
-        while (start != cell)
-
-        return perimeter
+    private fun getPerimeter() = buildList {
+        var segment = next()[0].let { Segment(it, it - start) }.also(::addLast)
+        do {
+            segment = segment.next().also(::addLast)
+        } while (start != segment.index)
     }
 
     private fun next(cell: Int, previous: Int) =
@@ -100,12 +99,12 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
 }
 
 fun main() {
-    val input = File("src/main/resources/day_10_input.txt").readLines()
+    val input = File("src/main/resources/test.txt").readLines()
     val diagram = Diagram(input.flatMap(String::asIterable), input[0].length)
 
     // Part I
     println(diagram.loop())
 
     // Part II
-    print(diagram)
+    diagram.area()
 }
