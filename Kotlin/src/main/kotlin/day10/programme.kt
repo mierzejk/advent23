@@ -7,6 +7,7 @@ import kotlin.reflect.KProperty
 class Diagram(private val list: List<Char>, private val stride: Int) {
     private val start: Int = list.indexOf('S')
     private val lastIndex = list.size - 1
+    private val span = 0..lastIndex
 
     private val direction = object {
         val Up = -stride
@@ -33,7 +34,20 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
 
         fun next() =
             next(index, index - dir).let { with(index + it) {
-                if (this < 0 || lastIndex < this) this.raise() else Segment(this, it) } }
+                if (this !in span) this.raise() else Segment(this, it) } }
+
+        fun getTiles() = with(direction) {
+            when (symbol) {
+                '|' -> when (dir) { Down -> listOf(Left); else -> listOf(Right) }
+                '-' -> when (dir) { Left -> listOf(Up); else -> listOf(Down) }
+                'L' -> when (dir) { Down -> listOf(Down, Left); else -> emptyList() }
+                '7' -> when (dir) { Right -> emptyList(); else -> listOf(Up, Right) }
+                'J' -> when (dir) { Down -> emptyList(); else -> listOf(Right, Down) }
+                'F' -> when (dir) { Left -> listOf(Left, Up); else -> emptyList() }
+                else -> throw IllegalArgumentException(this@Segment.toString())
+            }.map { index + it }.filter { it in span && '.' == list[it] }
+                .also { if (it.isNotEmpty()) println("${this@Segment} $it") }
+        }
 
         override fun equals(other: Any?) = when {
             this === other -> true
@@ -44,7 +58,7 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
             return index.hashCode()
         }
 
-        override fun toString() = when(dir) {
+        override fun toString() = when (dir) {
             direction.Up -> '↑'
             direction.Right -> '→'
             direction.Down -> '↓'
@@ -66,7 +80,7 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
     }
 
     fun ArrayDeque<Int>.next(cell: Int) = next(cell, last()).let { cell + it }.also {
-        if (it < 0 || this@Diagram.lastIndex < it) it.raise() }.also { this.addLast(cell) }
+        if (it !in span) it.raise() }.also { this.addLast(cell) }
 
     fun loop(): Int {
         val routeA = ArrayDeque<Int>().apply { addLast(start) }
@@ -90,7 +104,13 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         var perimeter = getPerimeter()
         val cornerIndex = perimeter.indexOfMaxBy(Segment::index)
         perimeter = perimeter.drop(cornerIndex) + perimeter.take(cornerIndex)
-        print(perimeter[0])
+        val corner = perimeter[0]
+        assert('J' == corner.symbol)
+        if (stride == corner.index - perimeter[1].index)
+            perimeter = perimeter.asReversed()
+
+        val op = perimeter.map(Segment::getTiles).flatten().toSet()
+        println(op)
     }
 
     private fun Int.raise(): Nothing =
@@ -104,10 +124,10 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         } while (start != segment.index)
         segment.apply {
             assert('S' == symbol)
-            symbol = when(index - a) {
-                stride -> when(b - index) { -1 -> 'J'; 1 -> 'L'; stride -> '|'; else -> throw IllegalArgumentException() }
-                1 -> when(b - index) { 1 -> '-'; stride -> '7'; else -> throw IllegalArgumentException() }
-                -1 -> when(b - index) { stride -> 'F'; else -> throw IllegalArgumentException()}
+            symbol = when (index - a) {
+                stride -> when (b - index) { -1 -> 'J'; 1 -> 'L'; stride -> '|'; else -> throw IllegalArgumentException() }
+                1 -> when (b - index) { 1 -> '-'; stride -> '7'; else -> throw IllegalArgumentException() }
+                -1 -> when (b - index) { stride -> 'F'; else -> throw IllegalArgumentException()}
                 else -> throw IllegalArgumentException()
             }
         }
@@ -131,7 +151,7 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         start - 1 to setOf('-', 'F', 'L'),
         start + 1 to setOf('-', '7', 'J'),
         start + stride to setOf('|', 'L', 'J')).filter { with(it) {
-        first in 0..lastIndex && list[first] in second
+        first in span && list[first] in second
     } }.map { it.first }.apply { assert(2 == size && get(0) < get(1)) }
 }
 
