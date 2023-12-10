@@ -25,9 +25,9 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         }
     }
 
-    inner class Segment(val index: Int, private val direction: Int) {
+    inner class Segment(val index: Int, private val dir: Int) {
         fun next() =
-            next(index, index - direction).let { direction -> with(index+direction) {
+            next(index, index - dir).let { direction -> with(index+direction) {
                 if (this < 0 || lastIndex < this) this.raise() else Segment(this, direction) } }
 
         override fun equals(other: Any?) = when {
@@ -38,6 +38,14 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         override fun hashCode(): Int {
             return index.hashCode()
         }
+
+        override fun toString() = when(dir) {
+            direction.Up -> '↑'
+            direction.Right -> '→'
+            direction.Down -> '↓'
+            direction.Left -> '←'
+            else -> throw IllegalArgumentException()
+        }.let { "$it (${index / stride},${index % stride}): ${list[index]}" }
     }
 
     fun ArrayDeque<Int>.next(cell: Int) =
@@ -63,7 +71,8 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
 
     fun area() {
         val perimeter = getPerimeter()
-        println(perimeter.size)
+        var segment = perimeter.maxBy(Segment::index)
+        print(segment)
     }
 
     private fun Int.raise(): Nothing =
