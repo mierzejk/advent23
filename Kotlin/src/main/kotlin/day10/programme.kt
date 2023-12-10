@@ -25,10 +25,10 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         }
     }
 
-    inner class Segment(val index: Int, private val dir: Int) {
+    inner class Segment(val index: Int, private val dir: Int, private val symbol: Char = list[index]) {
         fun next() =
-            next(index, index - dir).let { direction -> with(index+direction) {
-                if (this < 0 || lastIndex < this) this.raise() else Segment(this, direction) } }
+            next(index, index - dir).let { (direction, symbol) -> with(index+direction) {
+                if (this < 0 || lastIndex < this) this.raise() else Segment(this, direction, symbol) } }
 
         override fun equals(other: Any?) = when {
             this === other -> true
@@ -45,11 +45,11 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
             direction.Down -> '↓'
             direction.Left -> '←'
             else -> throw IllegalArgumentException()
-        }.let { "$it (${index / stride},${index % stride}): ${list[index]}" }
+        }.let { "$it (${index / stride},${index % stride}): $symbol" }
     }
 
-    fun ArrayDeque<Int>.next(cell: Int) =
-        next(cell, last()).let { cell + it }.also { if (it < 0 || this@Diagram.lastIndex < it) it.raise() }.also { this.addLast(cell) }
+    fun ArrayDeque<Int>.next(cell: Int) = next(cell, last()).let { (it, _) -> cell + it }.also {
+        if (it < 0 || this@Diagram.lastIndex < it) it.raise() }.also { this.addLast(cell) }
 
     fun loop(): Int {
         val routeA = ArrayDeque<Int>().apply { addLast(start) }
@@ -86,9 +86,9 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
     }
 
     private fun next(cell: Int, previous: Int) =
-        with(object { val less = previous < cell; val adjacent = 1 == abs(cell - previous)
+        with(object { val less = previous < cell; val adjacent = 1 == abs(cell - previous); val symbol = list[cell]
             val Up by direction; val Right by direction; val Down by direction; val Left by direction }) {
-            when (list[cell]) {
+            when (symbol) {
                 '|' -> if (less) Down else Up
                 '-' -> if (less) Right else Left
                 'L' -> if (less) Right else Up
@@ -96,7 +96,7 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
                 'J' -> if (adjacent) Up else Left
                 'F' -> if (adjacent) Down else Right
                 else -> cell.raise()
-        } }
+        }.let { it to symbol } }
 
     private fun next() = listOf(
         start - 1 to setOf('-', 'F', 'L'),
