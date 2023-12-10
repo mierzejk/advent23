@@ -26,7 +26,7 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         }
     }
 
-    inner class Segment(val index: Int, private val dir: Int) {
+    inner class Segment(val index: Int, val dir: Int) {
         var symbol: Char = list[index]
             set(value) { validate(value).also { field = it } }
 
@@ -36,7 +36,11 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
             next(index, index - dir).let { with(index + it) {
                 if (this !in span) this.raise() else Segment(this, it) } }
 
-        fun getTiles() = with(direction) {
+        fun getTiles(reversed: Boolean) = when(reversed) { true -> tilesReversed(); false -> tiles() }
+            .map { index + it }.filter { it in span }
+            .also { if (it.isNotEmpty()) println("${this@Segment} $it") } // TODO - debug message
+
+        private fun tiles() = with(direction) {
             when (symbol) {
                 '|' -> when (dir) { Down -> listOf(Left); else -> listOf(Right) }
                 '-' -> when (dir) { Left -> listOf(Up); else -> listOf(Down) }
@@ -45,8 +49,19 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
                 'J' -> when (dir) { Down -> emptyList(); else -> listOf(Right, Down) }
                 'F' -> when (dir) { Left -> listOf(Left, Up); else -> emptyList() }
                 else -> throw IllegalArgumentException(this@Segment.toString())
-            }.map { index + it }.filter { it in span && '.' == list[it] }
-                .also { if (it.isNotEmpty()) println("${this@Segment} $it") }
+            }
+        }
+
+        private fun tilesReversed() = with(direction) {
+            when (symbol) {
+                '|' -> when (dir) { Down -> listOf(Right); else -> listOf(Left) }
+                '-' -> when (dir) { Left -> listOf(Down); else -> listOf(Up) }
+                'L' -> when (dir) { Down -> emptyList(); else -> listOf(Down, Left) }
+                '7' -> when (dir) { Right -> listOf(Up, Right); else -> emptyList() }
+                'J' -> when (dir) { Down -> listOf(Right, Down); else -> emptyList() }
+                'F' -> when (dir) { Left -> emptyList(); else -> listOf(Left, Up) }
+                else -> throw IllegalArgumentException(this@Segment.toString())
+            }
         }
 
         override fun equals(other: Any?) = when {
@@ -106,11 +121,10 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         perimeter = perimeter.drop(cornerIndex) + perimeter.take(cornerIndex)
         val corner = perimeter[0]
         assert('J' == corner.symbol)
-        if (stride == corner.index - perimeter[1].index)
-            perimeter = perimeter.asReversed()
-
-        val op = perimeter.map(Segment::getTiles).flatten().toSet()
-        println(op)
+        val reversed = corner.dir == direction.Right
+        val op = perimeter.map { it.getTiles(reversed) }.flatten().toSet() - perimeter.map(Segment::index).toSet()
+        println(op.map { "(${it / stride},${it % stride})'${list[it]}'" })
+        println(op.size)
     }
 
     private fun Int.raise(): Nothing =
