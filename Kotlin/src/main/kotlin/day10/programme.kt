@@ -8,6 +8,7 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
     private val start: Int = list.indexOf('S')
     private val lastIndex = list.size - 1
     private val span = 0..lastIndex
+    private val compassRose = listOf(-stride, -1, 1, stride)
 
     private val direction = object {
         val Up = -stride
@@ -38,7 +39,6 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
 
         fun getTiles(reversed: Boolean) = when(reversed) { true -> tilesReversed(); false -> tiles() }
             .map { index + it }.filter { it in span }
-            .also { if (it.isNotEmpty()) println("${this@Segment} $it") } // TODO - debug message
 
         private fun tiles() = with(direction) {
             when (symbol) {
@@ -115,16 +115,23 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         }
     }
 
-    fun area() {
+    fun area(): Int {
         var perimeter = getPerimeter()
         val cornerIndex = perimeter.indexOfMaxBy(Segment::index)
         perimeter = perimeter.drop(cornerIndex) + perimeter.take(cornerIndex)
         val corner = perimeter[0]
         assert('J' == corner.symbol)
         val reversed = corner.dir == direction.Right
-        val op = perimeter.map { it.getTiles(reversed) }.flatten().toSet() - perimeter.map(Segment::index).toSet()
-        println(op.map { "(${it / stride},${it % stride})'${list[it]}'" })
-        println(op.size)
+        val perimeterSet = perimeter.map(Segment::index).toSet()
+        val pending = (perimeter.map { it.getTiles(reversed) }.flatten().subtract(perimeterSet)).toMutableSet()
+        val added = HashSet<Int>()
+
+        while(pending.isNotEmpty()) {
+            val tile = pending.pop().also(added::add)
+            pending += compassRose.map { tile + it }.filter { it in span }.subtract(added union perimeterSet)
+        }
+
+        return added.size
     }
 
     private fun Int.raise(): Nothing =
@@ -171,13 +178,15 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
 
 internal fun<T, R: Comparable<R>> List<T>.indexOfMaxBy(selector: (T) -> R) = this.indexOf(this.maxBy(selector))
 
+internal fun<T> MutableCollection<T>.pop() = with(iterator()) { next().also { remove() } }
+
 fun main() {
-    val input = File("src/main/resources/test.txt").readLines()
+    val input = File("src/main/resources/day_10_input.txt").readLines()
     val diagram = Diagram(input.flatMap(String::asIterable), input[0].length)
 
     // Part I
     println(diagram.loop())
 
     // Part II
-    diagram.area()
+    println(diagram.area())
 }
