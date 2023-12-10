@@ -25,7 +25,7 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         }
     }
 
-    inner class Segment(val index: Int, private val dir: Int, private val symbol: Char = list[index]) {
+    inner class Segment(val index: Int, private val dir: Int, val symbol: Char = list[index]) {
         fun next() =
             next(index, index - dir).let { (direction, symbol) -> with(index+direction) {
                 if (this < 0 || lastIndex < this) this.raise() else Segment(this, direction, symbol) } }
@@ -79,10 +79,12 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         throw IllegalArgumentException("(${this / stride},${this % stride}): ${list[this]}")
 
     private fun getPerimeter() = buildList {
-        var segment = next()[0].let { Segment(it, it - start) }.also(::addLast)
+        val (a, b) = next()
+        var segment = a.let { Segment(it, it - start) }.also(::addLast)
         do {
             segment = segment.next().also(::addLast)
         } while (start != segment.index)
+        assert('S' == segment.symbol)
     }
 
     private fun next(cell: Int, previous: Int) =
@@ -99,12 +101,12 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
         }.let { it to symbol } }
 
     private fun next() = listOf(
-        start - 1 to setOf('-', 'F', 'L'),
         start - stride to setOf('|', 'F', '7'),
+        start - 1 to setOf('-', 'F', 'L'),
         start + 1 to setOf('-', '7', 'J'),
         start + stride to setOf('|', 'L', 'J')).filter { with(it) {
         first in 0..lastIndex && list[first] in second
-    } }.map { it.first }.apply { assert(2 == size) }
+    } }.map { it.first }.apply { assert(2 == size && get(0) < get(1)) }
 }
 
 fun main() {
