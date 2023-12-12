@@ -21,11 +21,7 @@ internal fun String.backtrack(at: Int, erasureCodes: List<Int>): Int {
     var total = 0
     erasureCodes[0].let { code ->
         for (i in (at..length - code)
-            .filter { '#' !in substring(at, max(at, it - 1)) }) {
-
-            if ('.' == this[i] || '#' == this.getOrNull(i-1) || !matches(i, code)) // Is correct starting point?
-                continue
-
+            .filter { '#' !in substring(at, max(at, it)) && '.' != this[it] && matches(it, code)}) {
             total += backtrack(i + code + 1, erasureCodes.drop(1))
         }
     }
