@@ -16,17 +16,23 @@ internal fun String.matches(at: Int, erasureCode: Int) =
 
 internal fun String.backtrack(at: Int, erasureCodes: List<Int>): Int {
     if (erasureCodes.isEmpty())
-        return if (at < length && '#' in substring(at)) 0 else 1
+        return ('#' !in substring(min(at, length))).compareTo(false)
 
-    var total = 0
-    erasureCodes[0].let { code ->
-        for (i in (at..length - code)
-            .filter { '#' !in substring(at, max(at, it)) && '.' != this[it] && matches(it, code)}) {
-            total += backtrack(i + code + 1, erasureCodes.drop(1))
-        }
+//    var total = 0
+    return erasureCodes[0].let { code ->
+        (at..length - code)
+            .filter { '#' !in substring(at, max(at, it)) && '.' != this[it] && matches(it, code) }
+            .sumOf { backtrack(it + code + 1, erasureCodes.drop(1)) }
+//        ) {
+//            total += backtrack(i + code + 1, erasureCodes.drop(1))
+//        }
+//        for (i in (at..length - code)
+//            .filter { '#' !in substring(at, max(at, it)) && '.' != this[it] && matches(it, code)}) {
+//            total += backtrack(i + code + 1, erasureCodes.drop(1))
+//        }
     }
 
-    return total
+//    return total
 }
 
 fun main() {
