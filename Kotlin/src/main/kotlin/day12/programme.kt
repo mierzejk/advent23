@@ -3,6 +3,8 @@ package day12
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.*
+import kotlin.system.measureTimeMillis
+import kotlinx.coroutines.*
 
 internal class DefaultMap<K, V>(private val defaultValue: (key: K) -> V): HashMap<K, V>() {
     override fun get(key: K) = super.get(key) ?: defaultValue(key).also { this[key] = it }
@@ -30,12 +32,29 @@ internal fun String.backTrack(at: Int, codesLeft: List<Int>): ULong = when {
 }
 
 fun main() {
+    val input = ArrayList<Pair<String, List<Int>>>()
     File("src/main/resources/day_12_input.txt").useLines { file ->
-        file.map { it.split(' ')
+        file.mapTo(input) { it.split(' ')
             // Part II
             .let { (line, codes) -> Pair(
                 List(5){ _ -> line }.joinToString("?"),
                 List(5){ _ -> codes }.joinToString(",")) }
-            .let { (line, codes) -> line.backTrack(0, codes.split(',').map(String::toInt))
-            } }.sum() }.also(::println)
+            .let { (line, codes) -> Pair(line, codes.split(',').map(String::toInt))
+            } } }
+
+    var result: ULong
+    measureTimeMillis {
+        result = runBlocking(Dispatchers.Default) {
+            input.indices.map {
+                async { input[it].let { (line, codes) -> line.backTrack(0, codes) } }
+            }.awaitAll().sum()
+        }
+    }.let { println("Co [$it]: $result") }
+
+    // Invalidate cache.
+    cache.clear()
+
+    measureTimeMillis {
+        result = input.sumOf { (line, codes) -> line.backTrack(0, codes) }
+    }.let { println("Seq [$it]: $result") }
 }
