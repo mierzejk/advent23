@@ -21,12 +21,12 @@ internal fun String.matches(at: Int, erasureCode: Int) =
 internal fun String.backTrack(at: Int, codesLeft: List<Int>): ULong = when {
     // Accept the branch (+1) only if there is no '#' remaining in the line ahead; otherwise return 0.
     codesLeft.isEmpty() -> if('#' in substring(min(at, length))) 0UL else 1UL
-    else -> (if (lastIndex < at) "" else "${this.substring(at)}%${codesLeft.joinToString(",")}").let {
-        cacheKey -> cache[cacheKey] ?: codesLeft[0].let { code ->
-            (at..length - code)
-                // Follow a branch only if this is an acceptable starting point and there is no '#' left from the last covered span.
-                .filter { '#' !in substring(at, max(at, it)) && '.' != this[it] && matches(it, code) }
-                .sumOf { backTrack(it + code + 1, codesLeft.drop(1)) }
+    lastIndex < at -> 0UL
+    else -> "${this.substring(at)}%${codesLeft.joinToString(",")}".let {
+        cacheKey -> cache[cacheKey] ?: codesLeft[0].let { code -> (at..length - code)
+            // Follow a branch only if this is an acceptable starting point and there is no '#' left from the last covered span.
+            .filter { '#' !in substring(at, max(at, it)) && '.' != this[it] && matches(it, code) }
+            .sumOf { backTrack(it + code + 1, codesLeft.drop(1)) }
         }.also { cache.putIfAbsent(cacheKey, it) }
     }
 }
