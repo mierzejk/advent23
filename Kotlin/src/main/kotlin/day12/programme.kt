@@ -1,6 +1,7 @@
 package day12
 
 import java.io.File
+import kotlin.math.max
 import kotlin.math.min
 
 internal class DefaultMap<K, V>(private val defaultValue: (key: K) -> V): HashMap<K, V>() {
@@ -19,11 +20,10 @@ internal fun String.backtrack(at: Int, erasureCodes: List<Int>): Int {
 
     var total = 0
     erasureCodes[0].let { code ->
-        for (i in at..length - code) {
-            if (at < i && '#' in substring(at, i - 1))
-                break
+        for (i in (at..length - code)
+            .filter { '#' !in substring(at, max(at, it - 1)) }) {
 
-            if ('.' == this[i] || 0 < i && '#' == this[i-1] || !matches(i, code)) // Is correct starting point?
+            if ('.' == this[i] || '#' == this.getOrNull(i-1) || !matches(i, code)) // Is correct starting point?
                 continue
 
             total += backtrack(i + code + 1, erasureCodes.drop(1))
