@@ -1,3 +1,5 @@
+package day13
+
 data class Palindrome(val center: Int, val radius: Int) : Comparable<Palindrome> {
     val range: Int
         get() = center + radius
