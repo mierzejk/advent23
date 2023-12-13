@@ -3,26 +3,27 @@ package day13
 import manacher
 import java.io.File
 
-fun getReflection(input: List<UInt>) = manacher(input, UInt.MAX_VALUE).run {
+fun<T> getReflection(input: List<T>, bogus: T) = manacher(input, bogus).run {
         mapIndexed { index, i -> index to i }.
         filter { (index, i) -> 1 == index % 2 && 2 * i in listOf(index + 1, size - index) }.
         maxByOrNull(Pair<Int, Int>::second)?.first ?: -1
     }.let { (it + 1) / 2 }
 
-data class Pattern(val rows: List<UInt>, val cols: List<UInt>) {
+data class Pattern<T>(val bogus: T, val rows: List<T>, val cols: List<T>) {
     val horizontalReflection: Int
-        get() = getReflection(rows)
+        get() = getReflection(rows, bogus)
 
     val verticalReflection: Int
-        get() = getReflection(cols)
+        get() = getReflection(cols, bogus)
 }
 
-fun readPattern(chars: List<Char>, stride: Int) = (chars.size / stride).let { cols -> Pattern(
-        (chars.indices step stride).map { (it..<it + stride).fold(0U) { acc, i ->
-                acc + if ('#' == chars[i]) 1U shl i % stride else 0U } },
-        (0..<stride).map { (it..chars.lastIndex step stride).fold(0U) { acc, i ->
-                acc + if ('#' == chars[i]) 1U shl (i - it) % cols else 0U } })
-}
+fun Char.ToBit() = when(this) { '#' -> '1' else -> '0' }
+
+fun readPattern(chars: List<Char>, stride: Int) = Pattern(bogus = -1,
+        (chars.indices step stride).map { (it..<it + stride).map { i ->
+            chars[i].ToBit() }.joinToString("").toInt(2) },
+        (0..<stride).map { (it..chars.lastIndex step stride).map { i ->
+            chars[i].ToBit() }.joinToString("").toInt(2) })
 
 fun main() {
     val sb = StringBuilder()
@@ -42,8 +43,5 @@ fun main() {
             add(readPattern(sb.toList(), stride))
         }
     }
-
-    val op = patterns.filter { 0 == it.horizontalReflection + it.verticalReflection }
-    patterns.forEach{p -> println("${p.verticalReflection} / ${p.horizontalReflection}")}
     patterns.sumOf { 100UL * it.horizontalReflection.toULong() + it.verticalReflection.toULong() }.also(::println)
 }
