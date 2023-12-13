@@ -5,7 +5,7 @@ import java.io.File
 fun<T> getReflection(input: List<T>, bogus: T, except: List<Int> = emptyList()) = manacher(input, bogus).run {
         mapIndexed { index, i -> index to i }.
         filter { (index, i) -> 1 == index % 2 && 2 * i in listOf(index + 1, size - index) && index !in except }.
-        maxByOrNull(Pair<Int, Int>::second)?.first ?: -1}
+        maxByOrNull(Pair<Int, Int>::second)?.first ?: -1 }
 
 fun Int.idxToLines() = ((this + 1) / 2).toULong()
 
