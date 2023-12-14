@@ -13,7 +13,7 @@ fun main() {
     val emptyRows = ArrayList<Long>()
     File("src/main/resources/day_11_input.txt").useLines { file -> file.flatMapIndexedTo(space) {
         row, line -> line.withIndex().filter { (_, char) -> '#' == char }.map {
-            (col, _) -> Galaxy(row, col) }.also {if (it.isEmpty()) emptyRows.addLast(row.toLong()) } } }
+            (col, _) -> Galaxy(row, col) }.also { if (it.isEmpty()) emptyRows.addLast(row.toLong()) } } }
 
     val emptyCols = 0L..space.maxOf(Galaxy::x) subtract space.map(Galaxy::x).toSet()
     emptyRows.reversed().forEach { i -> space.filter { it.y > i }.forEach { it.y += expansion } }
