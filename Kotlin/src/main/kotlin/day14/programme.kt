@@ -22,8 +22,18 @@ internal class Platform(private val tilt: Tilt, size: Int) {
     }
 
     val load: ULong
-        get() = lines.reversed().foldIndexed(0UL) { index, acc, chars ->
-            (index.toULong() + 1UL) * chars.count { 'O' == it }.toULong() + acc }
+        get() = when(tilt) {
+            Tilt.North -> lines
+            // TODO West, South
+            Tilt.East -> slope.indices.map { i -> lines.reversed().map { it[i] }.toCharArray() }
+            else -> throw IllegalArgumentException(tilt.toString())
+        }.let {facingNorth ->
+            facingNorth.reversed().foldIndexed(0UL) { index, acc, chars ->
+                (index.toULong() + 1UL) * chars.count { 'O' == it }.toULong() + acc }
+        }
+
+//            lines.reversed().foldIndexed(0UL) { index, acc, chars ->
+//            (index.toULong() + 1UL) * chars.count { 'O' == it }.toULong() + acc }
 
     fun addLine(line: CharArray) {
         lines.add(line)
@@ -52,17 +62,13 @@ internal class Platform(private val tilt: Tilt, size: Int) {
 fun main() {
     File("src/main/resources/test.txt").useLines{ file ->
         val lines = file.iterator()
-        val platform = lines.next().let {
+        var platform = lines.next().let {
             Platform(Platform.Tilt.North, it.length).apply { addLine(it.toCharArray()) } }
         lines.forEachRemaining { platform.addLine(it.toCharArray()) }
         println(platform.load)
 
-        val p1 = platform.cycle()
-        println(p1)
-        val p2 = p1.cycle()
-        println(p2)
-        val p3 = p2.cycle()
-        println(p3)
+        repeat(3) { platform = platform.cycle() }
+        println(platform)
 
     }
 }
