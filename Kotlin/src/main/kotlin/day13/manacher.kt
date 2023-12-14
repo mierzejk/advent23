@@ -3,9 +3,13 @@ package day13
 data class Palindrome(val center: Int, val radius: Int) : Comparable<Palindrome> {
     val range: Int
         get() = center + radius
+    
     init { assert(radius <= center) }
+    
     override operator fun compareTo(other: Palindrome): Int = range.compareTo(other.range)
+    
     fun withRadius(centre: Int) = Palindrome(centre, radius)
+    
     fun withRange(centre: Int) = Palindrome(centre, range - centre)
 }
 
