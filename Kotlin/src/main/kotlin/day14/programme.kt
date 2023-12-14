@@ -6,11 +6,11 @@ internal class Platform(private val tilt: Tilt, size: Int) {
     private val slope = MutableList(size) { 0 }
     private val lines = ArrayList<CharArray>()
 
-    enum class Tilt(private val value: Int) {
-        North(0),
-        West(1),
-        South(2),
-        East(3);
+    enum class Tilt(val value: Int) {
+        North(3),
+        West(2),
+        South(1),
+        East(4);
 
         companion object {
             private val map = entries.associateBy(Tilt::value)
@@ -18,7 +18,7 @@ internal class Platform(private val tilt: Tilt, size: Int) {
         }
 
         val next: Tilt
-            get() = get((value + 1) % 4)
+            get() = get((value - 1).let { if (0 == it) 4 else it })
     }
 
     val load: ULong
@@ -38,8 +38,15 @@ internal class Platform(private val tilt: Tilt, size: Int) {
         }
     }
 
-    fun spinOne() = Platform(tilt.next, lines.size).apply { slope.indices.forEach { i ->
+    private fun spinOne() = Platform(tilt.next, lines.size).apply { slope.indices.forEach { i ->
         addLine(this@Platform.lines.reversed().map { it[i] }.toCharArray()) } }
+
+    fun cycle(): Platform {
+        var result = this
+        repeat(tilt.value) { result = result.spinOne() }
+        assert (Tilt.East == result.tilt)
+        return result
+    }
 }
 
 fun main() {
@@ -50,7 +57,12 @@ fun main() {
         lines.forEachRemaining { platform.addLine(it.toCharArray()) }
         println(platform.load)
 
-        val p2 = platform.spinOne()
+        val p1 = platform.cycle()
+        println(p1)
+        val p2 = p1.cycle()
         println(p2)
+        val p3 = p2.cycle()
+        println(p3)
+
     }
 }
