@@ -22,12 +22,9 @@ fun main() {
         fun horizontal() = listOf(direction.Left.move(), direction.Right.move())
     }
 
-    var queue: ArrayDeque<Beam>
-    var visited: List<MutableSet<Int>>
-
     fun trace(beam: Beam): Int {
-        queue = ArrayDeque<Beam>(12).apply { add(beam) }
-        visited = List(contraption.size) { mutableSetOf<Int>() }.apply { this[0] += queue[0].dir }
+        val queue = ArrayDeque<Beam>(12).apply { add(beam) }
+        val visited = List(contraption.size) { mutableSetOf<Int>() }.apply { this[0] += beam.dir }
 
         while (queue.isNotEmpty()) {
             queue.removeFirst().run {
@@ -87,10 +84,10 @@ fun main() {
     // Part II
     measureTimeMillis {
         listOf(
-            input.indices.map { Beam(it * stride, direction.Right) }
+            input.indices.map { Beam(it * stride, direction.Right) },
+            (0..<stride).map { Beam(it, direction.Down) },
+            (1..stride).map { Beam(contraption.size - it, direction.Up) },
+            (1..input.size).map { Beam(it * stride - 1, direction.Left) }
         ).flatMap { it.map(::trace) }.max().also { println("Max: $it") }
-//        input.indices.maxOfOrNull {
-//            trace(Beam(it * stride, direction.Right))
-//        }.also { println("Max: $it") }
     }.also { println("timeit: $it") }
 }
