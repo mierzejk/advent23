@@ -24,7 +24,7 @@ fun main() {
 
     fun trace(beam: Beam): Int {
         val queue = ArrayDeque<Beam>(12).apply { add(beam) }
-        val visited = List(contraption.size) { mutableSetOf<Int>() }.apply { this[0] += beam.dir }
+        val visited = List(contraption.size) { mutableSetOf<Int>() }.apply { this[beam.pos] += beam.dir }
 
         while (queue.isNotEmpty()) {
             queue.removeFirst().run {
