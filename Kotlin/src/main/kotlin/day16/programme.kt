@@ -35,13 +35,11 @@ fun main() {
                         direction.Left, direction.Right -> vertical()
                         else -> throw IllegalArgumentException("$dir")
                     }
-
                     '-' -> when (dir) {
                         direction.Left, direction.Right -> geradeaus()
                         direction.Up, direction.Down -> horizontal()
                         else -> throw IllegalArgumentException("$dir")
                     }
-
                     '/' -> when (dir) {
                         direction.Up -> right()
                         direction.Right -> up()
@@ -49,7 +47,6 @@ fun main() {
                         direction.Left -> down()
                         else -> throw IllegalArgumentException("$dir")
                     }
-
                     '\\' -> when (dir) {
                         direction.Up -> left()
                         direction.Right -> down()
@@ -57,7 +54,6 @@ fun main() {
                         direction.Left -> up()
                         else -> throw IllegalArgumentException("$dir")
                     }
-
                     else -> throw IllegalArgumentException("(${pos / stride},${pos % stride}): ${contraption[pos]}")
                 }
             }.filter {
