@@ -22,12 +22,15 @@ fun main() {
         fun horizontal() = listOf(direction.Left.move(), direction.Right.move())
     }
 
-    val queue = ArrayDeque<Beam>(12).apply { add(Beam(0, direction.Right)) }
-    val visited = List(contraption.size) { mutableSetOf<Int>() }.apply { this[0] += queue[0].dir }
+    var queue: ArrayDeque<Beam>// = ArrayDeque<Beam>(12).apply { add(Beam(0, direction.Right)) }
+    var visited: List<MutableSet<Int>> = emptyList()// = List(contraption.size) { mutableSetOf<Int>() }.apply { this[0] += queue[0].dir }
 
-    while (queue.isNotEmpty()) {
-        queue.removeFirst().run {
-            when (contraption[pos]) {
+    fun trace(beam: Beam) {
+        queue = ArrayDeque<Beam>(12).apply { add(beam) }
+        visited = List(contraption.size) { mutableSetOf<Int>() }.apply { this[0] += queue[0].dir }
+
+        while (queue.isNotEmpty()) {
+            queue.removeFirst().run { when (contraption[pos]) {
                 '.' -> geradeaus()
                 '|' -> when (dir) {
                     direction.Up, direction.Down -> geradeaus()
@@ -54,18 +57,21 @@ fun main() {
                     else -> throw IllegalArgumentException("$dir")
                 }
                 else -> throw IllegalArgumentException("(${pos / stride},${pos % stride}): ${contraption[pos]}")
+            } }.filter { when {
+                it.pos !in contraption.indices -> false
+                direction.Left == it.dir && 0 == (it.pos + 1) % stride -> false
+                direction.Right == it.dir && 0 == (it.pos) % stride -> false
+                it.dir in visited[it.pos] -> false
+                else -> true
+            } }.forEach {
+                visited[it.pos] += it.dir
+                queue.add(it)
             }
-        }.filter { when {
-            it.pos !in contraption.indices -> false
-            direction.Left == it.dir && 0 == (it.pos + 1) % stride -> false
-            direction.Right == it.dir && 0 == (it.pos) % stride -> false
-            it.dir in visited[it.pos] -> false
-            else -> true
-        } }.forEach {
-            visited[it.pos] += it.dir
-            queue.add(it)
         }
     }
 
+    trace(Beam(0, direction.Right))
     visited.count { it.isNotEmpty() }.also(::println)
+
+    // Part II
 }
