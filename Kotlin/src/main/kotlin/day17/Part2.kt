@@ -8,8 +8,7 @@ const val MaxLength = 10
 val LengthRange = 1..MaxLength
 
 fun main() {
-//    val input = File("src/main/resources/day_17_input.txt").readLines()
-    val input = File("src/main/resources/test.txt").readLines()
+    val input = File("src/main/resources/day_17_input.txt").readLines()
     val stride = input[0].length
     val maxPos = input.size * stride - 1
     val direction = object { val Up = -stride; val Right = 1; val Down = stride; val Left = -1 }
@@ -31,8 +30,7 @@ fun main() {
                 }
             }
 
-            val directions
-                get() = when (dir) {
+            val directions get() = when (dir) {
                 direction.Up, direction.Down -> (
                     getNext(LengthRange.map { pos - it }.takeWhile { pos - (pos % stride) <= it }, direction.Left) +
                     getNext(LengthRange.map { pos + it }.takeWhile { it < pos - (pos % stride) + stride }, direction.Right)).toList()
@@ -50,16 +48,12 @@ fun main() {
     var verticalDistance = 0
     var horizontalDistance = 0
     LengthRange.forEach {
-        if (it <= input.size)
-            verticalDistance += map[(it - 1) * stride].cost
-
+        verticalDistance += map[(it - 1) * stride].cost
         horizontalDistance += map[it - 1].cost
         if (it >= MinLength) {
-            if (it <= input.size) {
-                val verticaStart = map[(it - 1) * stride].Segment(direction.Down, it, verticalDistance, map)
-                heap.add(verticaStart)
-                visited[(it - 1) * stride][direction.Down] = verticaStart
-            }
+            val verticaStart = map[(it - 1) * stride].Segment(direction.Down, it, verticalDistance, map)
+            heap.add(verticaStart)
+            visited[(it - 1) * stride][direction.Down] = verticaStart
             val horizontalStart = map[it - 1].Segment(direction.Right, it, horizontalDistance, map)
             heap.add(horizontalStart)
             visited[it - 1][direction.Right] = horizontalStart
@@ -72,8 +66,7 @@ fun main() {
     @Suppress("DuplicatedCode")
     while (map.lastIndex != heap.peek().pos) {
         val segment = heap.poll()
-        val dirs = segment.directions.filter { s -> getVisited(s)?.let { s.distance < it.distance } ?: true }
-        dirs.forEach {
+        segment.directions.filter { s -> getVisited(s)?.let { s.distance < it.distance } ?: true }.forEach {
             setVisited(it)
             heap.add(it)
         }
