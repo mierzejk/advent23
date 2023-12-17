@@ -41,6 +41,7 @@ fun main() {
     fun setVisited(segment: Node.Segment) { visited[segment.pos][segment.dir] = segment }
     start.forEach(::setVisited)
 
+    @Suppress("DuplicatedCode")
     while (map.lastIndex != heap.peek().pos) {
         val segment = heap.poll()
         segment.nextMoves.filter { s -> getVisited(s)?.let { s.length < it.length } ?: true }.forEach {

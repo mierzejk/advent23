@@ -27,7 +27,7 @@ fun main() {
                     value += map[p].cost
                     val len = i + 1
                     if (MinLength <= len)
-                        yield(Segment(way, i + 1, value, map))
+                        yield(map[p].Segment(way, i + 1, value, map))
                 }
             }
 
@@ -50,12 +50,16 @@ fun main() {
     var verticalDistance = 0
     var horizontalDistance = 0
     LengthRange.forEach {
-        verticalDistance += map[(it - 1) * stride].cost
+        if (it <= input.size)
+            verticalDistance += map[(it - 1) * stride].cost
+
         horizontalDistance += map[it - 1].cost
         if (it >= MinLength) {
-            val verticaStart = map[(it - 1) * stride].Segment(direction.Down, it, verticalDistance, map)
-            heap.add(verticaStart)
-            visited[(it - 1) * stride][direction.Down] = verticaStart
+            if (it <= input.size) {
+                val verticaStart = map[(it - 1) * stride].Segment(direction.Down, it, verticalDistance, map)
+                heap.add(verticaStart)
+                visited[(it - 1) * stride][direction.Down] = verticaStart
+            }
             val horizontalStart = map[it - 1].Segment(direction.Right, it, horizontalDistance, map)
             heap.add(horizontalStart)
             visited[it - 1][direction.Right] = horizontalStart
@@ -68,11 +72,12 @@ fun main() {
     @Suppress("DuplicatedCode")
     while (map.lastIndex != heap.peek().pos) {
         val segment = heap.poll()
-        segment.directions.filter { s -> getVisited(s)?.let { s.distance < it.distance } ?: true }.forEach {
+        val dirs = segment.directions.filter { s -> getVisited(s)?.let { s.distance < it.distance } ?: true }
+        dirs.forEach {
             setVisited(it)
             heap.add(it)
         }
     }
 
-    println(heap.peek().distance)
+    println(heap.peek().distance - map[0].cost)
 }
