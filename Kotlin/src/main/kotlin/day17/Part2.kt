@@ -15,7 +15,6 @@ fun main() {
 
     class Node(val pos: Int, val cost: Int) {
         inner class Segment(val dir: Int,
-                            val length: Int,
                             val distance: Int,
                             private val map: List<Node>) {
             val pos: Int by this@Node::pos
@@ -26,7 +25,7 @@ fun main() {
                     value += map[p].cost
                     val len = i + 1
                     if (MinLength <= len)
-                        yield(map[p].Segment(way, i + 1, value, map))
+                        yield(map[p].Segment(way, value, map))
                 }
             }
 
@@ -47,16 +46,16 @@ fun main() {
 
     var verticalDistance = 0
     var horizontalDistance = 0
-    LengthRange.forEach {
-        verticalDistance += map[(it - 1) * stride].cost
-        horizontalDistance += map[it - 1].cost
-        if (it >= MinLength) {
-            val verticaStart = map[(it - 1) * stride].Segment(direction.Down, it, verticalDistance, map)
+    (0..<MaxLength).forEach {
+        verticalDistance += map[it * stride].cost
+        horizontalDistance += map[it].cost
+        if (it + 1 >= MinLength) {
+            val verticaStart = map[it * stride].Segment(direction.Down, verticalDistance, map)
             heap.add(verticaStart)
-            visited[(it - 1) * stride][direction.Down] = verticaStart
-            val horizontalStart = map[it - 1].Segment(direction.Right, it, horizontalDistance, map)
+            visited[it * stride][direction.Down] = verticaStart
+            val horizontalStart = map[it].Segment(direction.Right, horizontalDistance, map)
             heap.add(horizontalStart)
-            visited[it - 1][direction.Right] = horizontalStart
+            visited[it][direction.Right] = horizontalStart
         }
     }
 
