@@ -19,6 +19,17 @@ internal data class Line(var left: Long, val right: Long) {
     val length = 1L + right - left
 }
 
+internal fun String.mapColour() = listOf(
+    when (this[5]) {
+        '0' -> "R"
+        '1' -> "D"
+        '2' -> "L"
+        '3' -> "U"
+        else -> throw IllegalArgumentException(this)
+    },
+    this.take(5)
+)
+
 fun main() {
     val corners = DefaultSortedMap<Long, List<Long>>{ emptyList() }
     fun addCorner(element: Corner) {
@@ -27,8 +38,8 @@ fun main() {
 
     var corner = Corner(0L, 0L)
     File("src/main/resources/day_18_input.txt").useLines { file -> file.forEach { line ->
-        val (dir, len) = lineRe.matchEntire(line)!!.groupValues.slice(1..2)
-        corner = corner.getNext(dir, len.toLong()).also(::addCorner)
+        val (dir, len) = lineRe.matchEntire(line)!!.groups["colour"]!!.value.mapColour()
+        corner = corner.getNext(dir, len.toLong(radix=16)).also(::addCorner)
     } }
     assert(corner == Corner(0L, 0L)) // Assert cycle
 
