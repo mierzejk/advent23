@@ -3,6 +3,8 @@ package day18
 import DefaultSortedMap
 import bisectDistinct
 import java.io.File
+import java.util.*
+import kotlin.collections.ArrayDeque
 import kotlin.math.max
 
 internal data class Corner(val y: Long, val x: Long) {
@@ -30,19 +32,7 @@ internal fun String.mapColour() = listOf(
     this.take(5)
 )
 
-fun main() {
-    val corners = DefaultSortedMap<Long, List<Long>>{ emptyList() }
-    fun addCorner(element: Corner) {
-        corners[element.y] = corners[element.y].bisectDistinct(element.x)
-    }
-
-    var corner = Corner(0L, 0L)
-    File("src/main/resources/day_18_input.txt").useLines { file -> file.forEach { line ->
-        val (dir, len) = lineRe.matchEntire(line)!!.groups["colour"]!!.value.mapColour()
-        corner = corner.getNext(dir, len.toLong(radix=16)).also(::addCorner)
-    } }
-    assert(corner == Corner(0L, 0L)) // Assert cycle
-
+internal fun getArea(corners: SortedMap<Long, List<Long>>): Long {
     var lines = ArrayDeque<Line>()
     var lastIndex = 0L
     var area = 0L
@@ -137,5 +127,21 @@ fun main() {
         area += sum
         lastIndex = index
     }
-    print(area)
+
+    return area
+}
+
+fun main() {
+    val corners = DefaultSortedMap<Long, List<Long>>{ emptyList() }
+    fun addCorner(element: Corner) {
+        corners[element.y] = corners[element.y].bisectDistinct(element.x)
+    }
+
+    var corner = Corner(0L, 0L)
+    File("src/main/resources/day_18_input.txt").useLines { file -> file.forEach { line ->
+        val (dir, len) = lineRe.matchEntire(line)!!.groups["colour"]!!.value.mapColour()
+        corner = corner.getNext(dir, len.toLong(radix=16)).also(::addCorner)
+    } }
+    assert(corner == Corner(0L, 0L)) // Assert cycle
+    println(getArea(corners))
 }
