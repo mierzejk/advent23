@@ -1,5 +1,6 @@
 package day10
 
+import pop
 import java.io.File
 import kotlin.math.abs
 import kotlin.reflect.KProperty
@@ -177,8 +178,6 @@ class Diagram(private val list: List<Char>, private val stride: Int) {
 }
 
 internal fun<T, R: Comparable<R>> List<T>.indexOfMaxBy(selector: (T) -> R) = this.indexOf(this.maxBy(selector))
-
-internal fun<T> MutableCollection<T>.pop() = with(iterator()) { next().also { remove() } }
 
 fun main() {
     val input = File("src/main/resources/day_10_input.txt").readLines()

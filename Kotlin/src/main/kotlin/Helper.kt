@@ -1,0 +1,1 @@
+fun<T> MutableCollection<T>.pop() = with(iterator()) { next().also { remove() } }
