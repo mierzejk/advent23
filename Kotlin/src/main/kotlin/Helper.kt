@@ -1,3 +1,6 @@
+import java.util.*
+import kotlin.collections.HashMap
+
 fun<T> MutableCollection<T>.pop() = with(iterator()) { next().also { remove() } }
 
 fun<T: Comparable<T>> List<T>.bisectDistinct(element: T): List<T> {
@@ -18,5 +21,9 @@ fun<T: Comparable<T>> List<T>.bisectDistinct(element: T): List<T> {
 }
 
 class DefaultMap<K, V>(private val defaultValue: (key: K) -> V): HashMap<K, V>() {
+    override fun get(key: K) = super.get(key) ?: defaultValue(key).also { this[key] = it }
+}
+
+class DefaultSortedMap<K: Comparable<K>, V>(private val defaultValue: (key: K) -> V): TreeMap<K, V>() {
     override fun get(key: K) = super.get(key) ?: defaultValue(key).also { this[key] = it }
 }
