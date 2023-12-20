@@ -1,14 +1,11 @@
 package day12
 
+import DefaultMap
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.*
 import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.*
-
-internal class DefaultMap<K, V>(private val defaultValue: (key: K) -> V): HashMap<K, V>() {
-    override fun get(key: K) = super.get(key) ?: defaultValue(key).also { this[key] = it }
-}
 
 val cache = ConcurrentHashMap<String, ULong>()
 

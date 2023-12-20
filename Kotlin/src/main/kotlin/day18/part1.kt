@@ -19,7 +19,7 @@ internal data class Point(val y: Int, val x: Int) {
         Point(y-1, x)) }
 }
 
-private val lineRe: Regex = Regex("""(?<dir>[RDLU]) (?<len>\d+) \(#(?<colour>\w+)\)""")
+internal val lineRe: Regex = Regex("""(?<dir>[RDLU]) (?<len>\d+) \(#(?<colour>\w+)\)""")
 
 internal fun getAdjacent(side: String): Point.(String) -> Point {
     fun Point.rightAdjacent(dir: String) = when (dir) {
