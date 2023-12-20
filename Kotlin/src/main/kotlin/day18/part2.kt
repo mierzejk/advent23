@@ -3,6 +3,7 @@ package day18
 import DefaultSortedMap
 import bisectDistinct
 import java.io.File
+import kotlin.math.max
 
 internal data class Corner(val y: Long, val x: Long) {
     fun getNext(dir: String, len: Long) = when(dir) {
@@ -30,10 +31,32 @@ fun main() {
     assert(corner == Corner(0L, 0L))
 
     var lines = ArrayDeque<Line>()
-    var lastIndex = 0UL
+    var lastIndex = 1L
+    var area = 0L
     for ((index, values) in corners) {
+        var sum = lines.sumOf { 1L + it.right - it.left } * max((index - lastIndex - 1L), 0L)
+
         val pending = ArrayDeque<Line>()
         val newLines = values.zipWithNext().filterIndexed { i, _ -> 0 == i % 2 }.map { Line(it.first, it.second) }
+
+        val linesUnion = listOf(lines, newLines).flatten().sortedBy { it.left }
+        if (1 < linesUnion.size) {
+            var current = linesUnion[0]
+            sum += buildList {
+                linesUnion.drop(1).forEach {
+                    if (it.left <= current.right)
+                        current = Line(current.left, max(it.right, current.right))
+                    else {
+                        add(current)
+                        current = it
+                    }
+                }
+                add(current)
+            }.sumOf { 1L + it.right - it.left }
+        }
+        else
+            sum += newLines.sumOf { 1L + it.right - it.left }
+
         newLines@ for (newLine in newLines) {
             while (lines.isNotEmpty()) {
                 val first = lines.removeFirst()
@@ -93,7 +116,12 @@ fun main() {
             lines.add(current)
         }
 
-        println(index)
+        print("$index: $area + $sum = ")
+        area += sum
+        println(area)
+
         println(lines)
+        lastIndex = index
     }
+    print(area)
 }
