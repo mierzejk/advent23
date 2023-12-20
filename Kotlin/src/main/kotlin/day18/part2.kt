@@ -107,20 +107,18 @@ fun main() {
         pending.addAll(lines)
 
         // Merge adjacent lines.
-        lines = ArrayDeque()
-        if (pending.isNotEmpty()) {
+        lines = ArrayDeque<Line>().apply { if (pending.isNotEmpty()) {
             var current = pending[0]
-            for (line in pending.drop(1)) {
-                if (current.right == line.left - 1L)
-                    current = Line(current.left, line.right)
+            pending.drop(1).forEach {
+                if (current.right == it.left - 1L)
+                    current = Line(current.left, it.right)
                 else {
-                    lines.add(current)
-                    current = line
+                    add(current)
+                    current = it
                 }
             }
-
-            lines.add(current)
-        }
+            add(current)
+        } }
 
         print("$index: $area + $sum = ")
         area += sum
