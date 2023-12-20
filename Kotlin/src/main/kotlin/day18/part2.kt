@@ -6,6 +6,7 @@ import java.io.File
 import java.util.*
 import kotlin.collections.ArrayDeque
 import kotlin.math.max
+import kotlin.system.measureTimeMillis
 
 internal data class Corner(val y: Long, val x: Long) {
     fun getNext(dir: String, len: Long) = when(dir) {
@@ -143,5 +144,7 @@ fun main() {
         corner = corner.getNext(dir, len.toLong(radix=16)).also(::addCorner)
     } }
     assert(corner == Corner(0L, 0L)) // Assert cycle
-    println(getArea(corners))
+    var area: Long
+    val timeit = measureTimeMillis { area = getArea(corners) }
+    println("[took $timeit ms] $area")
 }
