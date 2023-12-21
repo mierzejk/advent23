@@ -59,14 +59,14 @@ fun main() {
         }
     }
 
-    fun getVisited(segment: Node.Segment) = visited[segment.pos][segment.dir]
-    fun setVisited(segment: Node.Segment) { visited[segment.pos][segment.dir] = segment }
+    fun Node.Segment.getVisited() = visited[pos][dir]
+    fun Node.Segment.setVisited() { visited[pos][dir] = this }
 
     @Suppress("DuplicatedCode")
     while (map.lastIndex != heap.peek().pos) {
         val segment = heap.poll()
-        segment.directions.filter { s -> getVisited(s)?.let { s.distance < it.distance } ?: true }.forEach {
-            setVisited(it)
+        segment.directions.filter { s -> s.getVisited()?.let { s.distance < it.distance } ?: true }.forEach {
+            it.setVisited()
             heap.add(it)
         }
     }

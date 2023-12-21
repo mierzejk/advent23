@@ -62,6 +62,7 @@ fun main() {
             assert(point == Point(0, 0))
 
             floodSeeds.removeAll(interior)
+            // Flood (seed) fill.
             while (floodSeeds.isNotEmpty()) {
                 point = floodSeeds.pop().also(interior::add)
                 floodSeeds.addAll(point.siblings subtract interior)
