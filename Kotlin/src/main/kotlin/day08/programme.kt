@@ -1,6 +1,7 @@
 package day08
 
 import java.io.File
+import LCM
 
 internal enum class Direction {
     L, R;
@@ -30,7 +31,6 @@ internal data class Node(val id: String, private val left: String, private val r
     }
 }
 
-@Suppress("FunctionName")
 fun main() {
     val nodes = HashMap<String, Node>()
     val route = File("src/main/resources/day_8_input.txt").useLines { file -> file.iterator().run {
@@ -51,11 +51,5 @@ fun main() {
     println(getSteps(nodes["AAA"]!!))
 
     // Part II
-    tailrec fun GCF(a: ULong, b: ULong): ULong = if (0UL == b) a else GCF(b, a%b)
-    fun LCM(a: ULong, b: ULong) = a * (b / GCF(a, b))
-    fun LCM(values: Collection<ULong>) = with(values.iterator()) {
-        object { var result = next() }.apply { forEachRemaining { result = LCM(result, it) } }.result
-    }
-
     nodes.values.filter(Node::isStarting).map(::getSteps).map(Int::toULong).let(::LCM).also(::println)
 }

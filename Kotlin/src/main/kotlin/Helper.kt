@@ -1,5 +1,15 @@
+@file:Suppress("FunctionName")
+
 import java.util.*
 import kotlin.collections.HashMap
+
+tailrec fun GCF(a: ULong, b: ULong): ULong = if (0UL == b) a else GCF(b, a%b)
+
+fun LCM(a: ULong, b: ULong) = a * (b / GCF(a, b))
+
+fun LCM(values: Collection<ULong>) = with(values.iterator()) {
+    object { var result = next() }.apply { forEachRemaining { result = LCM(result, it) } }.result
+}
 
 fun<T> MutableCollection<T>.pop() = with(iterator()) { next().also { remove() } }
 
