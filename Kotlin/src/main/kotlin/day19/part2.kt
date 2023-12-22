@@ -43,6 +43,7 @@ internal class Agent(val properties: Map<String, Set<Int>>, val node: Node, segm
     }
 }
 
+@Suppress("UNREACHABLE_CODE")
 fun main() {
     val topNodes = File("src/main/resources/day_19_input.txt").readLines().takeWhile { it.isNotBlank() }
         .mapNotNull(workflowRe::matchEntire).map { Node(it.groupValues[1], it.groupValues[2].split(',')) }.associateBy(Node::name).toMutableMap()
