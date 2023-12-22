@@ -25,10 +25,13 @@ class HighPulse(from: Module, to: Module) : Pulse(PulseType.High, from, to)
 
 abstract class Module(val name: String) {
     lateinit var sink: Collection<Module>
+    protected val input = mutableListOf<Pulse>()
 
-    internal open fun handle(pulse: Pulse) { }
+    internal fun handle(pulse: Pulse) = input.add(pulse)
 
-    abstract fun getOutput(): List<Pulse>
+    protected abstract fun getOutput(): List<Pulse>
+
+    internal fun sendOutput() = getOutput().also { input.clear() }
 
     protected fun allLow() = sink.map { LowPulse(this, it) }
     protected fun allHigh() = sink.map { HighPulse(this, it) }
@@ -44,15 +47,9 @@ abstract class Module(val name: String) {
 }
 
 abstract class StaticOutput(name: String): Module(name) {
-    private var output = emptyList<Pulse>()
-
     abstract fun handleAndSet(pulse: Pulse): List<Pulse>
 
-    override fun handle(pulse: Pulse) {
-        output = handleAndSet(pulse)
-    }
-
-    override fun getOutput() = output.also { output = emptyList() }
+    override fun getOutput() = input.flatMap(::handleAndSet)
 }
 
 class FlipFlop(name: String): StaticOutput(name) {
@@ -73,27 +70,18 @@ class FlipFlop(name: String): StaticOutput(name) {
 
 class Conjunction(name: String): Module(name) {
     lateinit var source: MutableMap<String, PulseType>
-    private var triggered = false
 
     fun setSource(modules: Collection<Module>) {
         source = modules.associate { it.name to PulseType.Low }.toMutableMap()
     }
 
-    override fun handle(pulse: Pulse) {
+    override fun getOutput() = buildList { input.forEach { pulse ->
         source[pulse.from.name] = pulse.type
-        triggered = true
-    }
-
-    override fun getOutput() = (
-        if (triggered) {
-            when (source.values.all { PulseType.High == it }) {
+        when (source.values.all { PulseType.High == it }) {
                 true -> allLow()
                 false -> allHigh()
-            }
-        }
-        else {
-            emptyList()
-        } ).also { triggered = false }
+        }.run(::addAll)
+    } }
 }
 
 class Broadcast(name: String): StaticOutput(name) {
@@ -111,7 +99,7 @@ fun Map<String, Module>.terminated(key: String) = when (key in this) {
 val lineRe = Regex("""(?<typeName>\S+)\s+->\s+(?<sink>.*)""")
 
 fun main() {
-    val input = File("src/main/resources/test.txt").readLines()
+    val input = File("src/main/resources/day_20_input.txt").readLines()
     // Read the list
     val moduleList = buildList {
         input.map(lineRe::matchEntire).forEach {
@@ -143,7 +131,7 @@ fun main() {
         var pending = listOf<Pulse>(LowPulse(Module.Button, broadcaster))
         while (pending.isNotEmpty()) {
             pending.forEach(Pulse::send)
-            pending = modules.flatMap(Module::getOutput)
+            pending = modules.flatMap(Module::sendOutput)
         }
     }
 
