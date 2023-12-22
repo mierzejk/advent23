@@ -94,6 +94,10 @@ fun main() {
         }
     }
 
+    // Path are disjoint by definition.
+    accepted.sumOf { it.properties.values.fold(1L) { acc, set -> acc * set.size.toLong() } }.also(::println)
+    return
+
     val indices = accepted.indices.toList()
     val attrs = "xmas".split("").filter(String::isNotEmpty)
     val maps = attrs.associateWith { c -> accepted.map { it.properties[c]!!.toMutableSet() } }
