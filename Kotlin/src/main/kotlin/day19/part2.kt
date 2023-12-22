@@ -1,5 +1,7 @@
 package day19
 
+import DefaultMap
+import combinations
 import java.io.File
 import java.util.LinkedList
 import java.util.Queue
@@ -15,7 +17,7 @@ internal class Node(val name: String, val rules: List<String>, val depth: Int = 
 
 internal class Arc(val attr: String, val division: Int, val left: Node, val right: Node)
 
-internal class Agent(private val properties: Map<String, Set<Int>>, val node: Node, segment: String) {
+internal class Agent(val properties: Map<String, Set<Int>>, val node: Node, segment: String) {
     private val path = "$segment→${node.name}"
     private val isDepleted get() = properties.values.any(Set<Int>::isEmpty)
 
@@ -42,7 +44,7 @@ internal class Agent(private val properties: Map<String, Set<Int>>, val node: No
 }
 
 fun main() {
-    val topNodes = File("src/main/resources/test.txt").readLines().takeWhile { it.isNotBlank() }
+    val topNodes = File("src/main/resources/day_19_input.txt").readLines().takeWhile { it.isNotBlank() }
         .mapNotNull(workflowRe::matchEntire).map { Node(it.groupValues[1], it.groupValues[2].split(',')) }.associateBy(Node::name).toMutableMap()
     val nodeA = Node("A", emptyList()).apply { topNodes[name] = this }
     val nodeR = Node("R", emptyList()).apply { topNodes[name] = this }
@@ -90,8 +92,30 @@ fun main() {
             else if (nodeR !== it.node)
                 queue.add(it)
         }
-        println("${agent.node.name}: ${queue.size}")
     }
 
-    println(accepted.size)
+    val indices = accepted.indices.toList()
+    val attrs = "xmas".split("").filter(String::isNotEmpty)
+    val maps = attrs.associateWith { c -> accepted.map { it.properties[c]!!.toMutableSet() } }
+    var total = 0L
+    (accepted.size downTo 1).forEach { length ->
+        for (c in combinations(indices, length)) {
+            val level = DefaultMap<String, MutableSet<Int>> { mutableSetOf() }
+            val selectedMap = attrs.associateWith { key -> maps[key]!!.filterIndexed { i, _ -> i in c } }
+            attrs.forEach { attr ->
+                val selectedSets = selectedMap[attr]!!
+                val intersection = selectedSets.reduce(Set<Int>::intersect)
+                level[attr].addAll(intersection)
+            }
+            val result = level.values.map { it.size.toLong() }.reduce {acc, i -> acc * i }
+            if (0 < result) {
+                total += result
+                level.forEach { (key, values) ->
+                    selectedMap[key]!!.forEach { it.removeAll(values) }
+                }
+            }
+        }
+    }
+
+    println(total)
 }
