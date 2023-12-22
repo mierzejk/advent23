@@ -8,7 +8,14 @@ enum class PulseType {
     High
 }
 
+val counter = mutableMapOf (
+    PulseType.Low to 0UL,
+    PulseType.High to 0UL
+)
+
 abstract class Pulse(val type: PulseType, val from: Module, val to: Module) {
+    init { counter[type] = counter[type]!! + 1UL }
+
     fun send() = to.handle(this)
 }
 
@@ -31,9 +38,7 @@ abstract class Module(val name: String) {
             override fun getOutput() = emptyList<Pulse>()
         }
         val Button = object: Module("button") {
-            override fun getOutput(): List<Pulse> {
-                TODO("By design")
-            }
+            override fun getOutput(): List<Pulse> = throw NotImplementedError("By design")
         }
     }
 }
@@ -98,6 +103,11 @@ class Broadcast(name: String): StaticOutput(name) {
     }
 }
 
+fun Map<String, Module>.terminated(key: String) = when (key in this) {
+    true -> this[key]!!
+    false -> Module.Terminator
+}
+
 val lineRe = Regex("""(?<typeName>\S+)\s+->\s+(?<sink>.*)""")
 
 fun main() {
@@ -120,7 +130,7 @@ fun main() {
 
     // Connect sinks
     for ((module, sinkList) in moduleList) {
-        module.sink = sinkList.map { moduleMap[it]!! }
+        module.sink = sinkList.map(moduleMap::terminated)
     }
 
     // Connect sources
@@ -129,10 +139,14 @@ fun main() {
             .associate { (module, _) -> module.name to PulseType.Low }.toMutableMap()
     }
 
-    var pending = listOf<Pulse>(LowPulse(Module.Button, broadcaster))
-    while(pending.isNotEmpty()) {
-        pending.forEach(Pulse::send)
-        pending = modules.flatMap(Module::getOutput)
-        println(pending.size)
+    repeat(1000) {
+        var pending = listOf<Pulse>(LowPulse(Module.Button, broadcaster))
+        while (pending.isNotEmpty()) {
+            pending.forEach(Pulse::send)
+            pending = modules.flatMap(Module::getOutput)
+        }
     }
+
+    val result = counter.values.reduce(ULong::times)
+    println("$counter → $result")
 }
