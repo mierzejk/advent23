@@ -1,3 +1,4 @@
+import day11.combinations
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -18,6 +19,18 @@ fun<T: Comparable<T>> List<T>.bisectDistinct(element: T): List<T> {
         add(element)
         addAll(this@bisectDistinct.slice(index..this@bisectDistinct.lastIndex))
     }
+}
+
+fun<T> combinations(collection: List<T>, length: Int): List<List<T>> {
+    if (collection.size < length || length < 1)
+        return emptyList()
+    if (1 == length)
+        return collection.map(::listOf)
+
+    return buildList { (0..collection.size-length).forEach {
+        for (tail in combinations(collection.drop(it + 1), length - 1))
+            add(listOf(collection[it]) + tail)
+    } }
 }
 
 class DefaultMap<K, V>(private val defaultValue: (key: K) -> V): HashMap<K, V>() {
