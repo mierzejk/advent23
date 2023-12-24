@@ -28,7 +28,7 @@ internal open class Board<T>(val array: List<T>, val stride: Int, height: Int? =
 
     open fun getAdjacent(index: Int) = adjacentIndices.mapNotNull { it(index) }
 
-    override fun toString() = array.map(Any?::toString).chunked(stride).joinToString("\n")
+    override fun toString() = array.map(Any?::toString).chunked(stride).joinToString("\n") { it.joinToString(" ") }
 }
 
 internal open class MutableBoard<T>(protected val mutableArray: MutableList<T>, stride: Int, height: Int? = null)
