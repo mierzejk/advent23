@@ -4,6 +4,7 @@ import java.io.File
 import java.util.*
 
 const val STEPS = 64
+val divisor = if (0 == STEPS % 2) 0 else 1
 
 internal class Garden(array: MutableList<Short>, stride: Int, height: Int? = null): MutableBoard<Short>(array, stride, height) {
     override fun getAdjacent(index: Int) = super.getAdjacent(index).filter { Short.MAX_VALUE == array[it] }
@@ -11,7 +12,8 @@ internal class Garden(array: MutableList<Short>, stride: Int, height: Int? = nul
     override fun toString() = array.map { when(it) {
         (-1).toShort() -> "#"
         Short.MAX_VALUE -> "."
-        else -> "O"
+        0.toShort() -> "S"
+        else -> if (divisor == it % 2) "O" else "_"
     } }.chunked(stride).joinToString("\n") { it.joinToString("") }
 }
 
@@ -65,5 +67,7 @@ fun main() {
         straightTo(step, plot, garden::elementDown, stride)
     }
 
-    println(garden.array.count { 0 == it % 2 })
+    println(garden.array.filter { -1 < it && it < Short.MAX_VALUE }.count { divisor == it % 2 })
+
+    // Part II
 }
