@@ -39,50 +39,30 @@ fun main() {
     // Part I
     garden[startingPoint] = 0
     val queue: Queue<Pair<Int, Short>> = PriorityQueue<Pair<Int, Short>> { a, b -> a.second - b.second}.apply { add(startingPoint to 0) }
+    fun straightTo(step: Short, plot: Int, site: (Int) -> Short?, delta: Int) {
+        var nextStep = (step + 1).toShort()
+        var nextIndex = plot
+        while(nextStep <= STEPS && site(nextIndex) == Short.MAX_VALUE) {
+            nextIndex += delta
+            garden[nextIndex] = nextStep
+            queue.add(nextIndex to nextStep)
+            nextStep++
+        }
+    }
+
     while (queue.isNotEmpty()) {
         val (plot, step) = queue.poll()
         if (STEPS < step)
             break
 
         // Left
-        var nextStep = (step + 1).toShort()
-        var nextIndex = plot
-        while(nextStep <= STEPS && garden.elementLeft(nextIndex) == Short.MAX_VALUE) {
-            nextIndex -= 1
-            garden[nextIndex] = nextStep
-            queue.add(nextIndex to nextStep)
-            nextStep++
-        }
-
+        straightTo(step, plot, garden::elementLeft, -1)
         // Up
-        nextStep = (step + 1).toShort()
-        nextIndex = plot
-        while(nextStep <= STEPS && garden.elementUp(nextIndex) == Short.MAX_VALUE) {
-            nextIndex -= stride
-            garden[nextIndex] = nextStep
-            queue.add(nextIndex to nextStep)
-            nextStep++
-        }
-
+        straightTo(step, plot, garden::elementUp, -stride)
         // Right
-        nextStep = (step + 1).toShort()
-        nextIndex = plot
-        while(nextStep <= STEPS && garden.elementRight(nextIndex) == Short.MAX_VALUE) {
-            nextIndex += 1
-            garden[nextIndex] = nextStep
-            queue.add(nextIndex to nextStep)
-            nextStep++
-        }
-
+        straightTo(step, plot, garden::elementRight, 1)
         // Down
-        nextStep = (step + 1).toShort()
-        nextIndex = plot
-        while(nextStep <= STEPS && garden.elementDown(nextIndex) == Short.MAX_VALUE) {
-            nextIndex += stride
-            garden[nextIndex] = nextStep
-            queue.add(nextIndex to nextStep)
-            nextStep++
-        }
+        straightTo(step, plot, garden::elementDown, stride)
     }
 
     println(garden.array.count { 0 == it % 2 })
