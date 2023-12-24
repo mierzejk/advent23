@@ -4,6 +4,7 @@ import java.io.File
 import java.util.*
 
 const val STEPS = 64
+@Suppress("KotlinConstantConditions")
 val divisor = if (0 == STEPS % 2) 0 else 1
 
 internal class Garden(array: MutableList<Short>, stride: Int, height: Int? = null): MutableBoard<Short>(array, stride, height) {
@@ -68,6 +69,24 @@ fun main() {
     }
 
     println(garden.array.filter { -1 < it && it < Short.MAX_VALUE }.count { divisor == it % 2 })
-
     // Part II
+    val odd_plots = 7336L
+    val even_plots = 7327L
+    assert(height == stride)
+    val totalSteps = 26501365
+    println("$totalSteps = ${totalSteps / height} * $stride + ${totalSteps % height}")
+    var total = odd_plots
+
+    for (i in 1..(totalSteps / height)) {
+        total += i * 4 * when (i % 2) {
+            1 -> even_plots
+            else -> odd_plots
+        }
+    }
+    // 600090495422936 → too low     / 1..(totalSteps / height)
+    // 600096424460644 → too high    / 1..(totalSteps / height) + 1
+
+    // Starting point + 130
+
+    println(total)
 }
