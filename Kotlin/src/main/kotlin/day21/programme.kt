@@ -22,6 +22,8 @@ internal class Garden(array: MutableList<Short>, stride: Int, height: Int? = nul
     } }.chunked(stride).joinToString("\n") { it.joinToString("") }
 }
 
+data class TotalPlots(var odd: Long = 0L, var even: Long = 0L)
+
 fun main() {
     val array = mutableListOf<Short>()
     var stride = 0
@@ -96,39 +98,68 @@ fun main() {
         } }
     )
 
-    val borderCrossings = listOf(remainder, remainder + stride, remainder + 2 * stride)
-    val queue = ArrayDeque<Point>().apply { add(Point(startingPoint / height, startingPoint % stride)) }
-    val visited = mutableSetOf<Point>()
-    val totalPlots = object { var even = 0L; var odd = 0L }
-    val stepPlots = mutableListOf<Long>()
-    for (step in 1..borderCrossings.last()) {
-        val counter = when (step % 2) {
-            0 -> totalPlots::even // even
-            else -> totalPlots::odd // odd
-        }
-        queue.indices.forEach { _ ->
-            val (y, x) = queue.removeFirst()
-            for (point in listOf(Point(y, x-1), Point(y-1, x), Point(y, x+1), Point(y+1, x))) {
-                val (j, i) = point.standardize()
-                if (point in visited || (-1).toShort() == array[j * stride + i])
-                    continue
+    fun Point.outOfBounds() = first < 0 || height <= first || second < 0 || stride <= second
 
-                visited.add(point)
-                queue.add(point)
-                counter.get().also { counter.set(it + 1L) }
+    fun getPlots(range: IntRange, infinite: Boolean = false) = sequence {
+        val queue = ArrayDeque<Point>().apply { add(Point(startingPoint / height, startingPoint % stride)) }
+        val visited = mutableSetOf<Point>()
+        val totalPlots = TotalPlots()
+        range.forEach { step ->
+            val counter = when (0 == step % 2) {
+                true -> totalPlots::even // even
+                false -> totalPlots::odd // odd
             }
+            queue.indices.forEach { _ ->
+                val (y, x) = queue.removeFirst()
+                for (point in listOf(Point(y, x-1), Point(y-1, x), Point(y, x+1), Point(y+1, x))) {
+                    if (!infinite && point.outOfBounds())
+                        continue
+                    val (j, i) = point.standardize()
+                    if (point in visited || (-1).toShort() == array[j * stride + i])
+                        continue
+
+                    visited.add(point)
+                    queue.add(point)
+                    counter.get().also { counter.set(it + 1L) }
+                }
+            }
+            yield(step to totalPlots)
+            if (queue.isEmpty())
+                return@sequence
         }
-        if (step in borderCrossings)
-            stepPlots.add(counter.get())
     }
 
+    val borderCrossings = listOf(remainder, remainder + stride, remainder + 2 * stride)
+    val stepPlots = mutableListOf<Long>()
+    for ((step, plots) in getPlots(1..borderCrossings.last(), infinite = true)) {
+        if (step in borderCrossings)
+            stepPlots.add(when (0 == step % 2) {
+                true -> plots.even
+                false -> plots.odd
+            }) }
+
+    // Part II - Lagrange polynomial
     println(listOf(1, 2, 3) zip stepPlots)
     // The parabola of best fit is y = 14663*x^2 - 14808*x + 3719
-    println("Result: ${3719L + 14663L * euclidean * euclidean + 14808L * euclidean}.")
+    println("Lagrange result: ${3719L + 14663L * euclidean * euclidean + 14808L * euclidean}.")
+
+    // Part II - Geometric
+    var sixtyFive = TotalPlots()
+    var full = TotalPlots()
+    getPlots(1..Int.MAX_VALUE).forEach { (step, plots) ->
+        if (65 == step) {
+            full = plots
+            sixtyFive = plots.copy()
+        } }
+    val (oddFull, evenFull) = full
+    val (oddCorners, evenCorners) = listOf(oddFull - sixtyFive.odd, evenFull - sixtyFive.even)
+    val result = (euclidean + 1) * (euclidean + 1) * oddFull + euclidean * euclidean * evenFull - (euclidean + 1) * oddCorners + euclidean * evenCorners
+    println("Geometric result: $result.")
 }
 
 internal fun min(a: Short, b: Short) = min(a.toInt(), b.toInt()).toShort()
 
+@Suppress("unused")
 fun zipArrays(left: List<Short>, right: List<Short>): List<Short> {
     return (left zip right).map { (a, b) -> min(a, b).also { if ((-1).toShort() == it) assert(a == b) } }
 }
