@@ -32,13 +32,14 @@ internal data class Block(private val corner1: Point, private val corner2: Point
     }
 }
 
-internal class Plane(ground: Block) {
+internal class Plane(private val ground: Block) {
     private val stride = ground.x2 + 1
-    private val height = ground.y2 + 1
-    private val length = stride * height
+    private val length = stride * (ground.y2 + 1)
     private val levels: MutableList<MutableList<Block?>> = mutableListOf(List(length) { ground }.toMutableList())
-//    private val support = DefaultMap<Block, MutableList<Block>> { mutableListOf() }
     private val safeBlocks = mutableSetOf(ground)
+    val supports = DefaultMap<Block, MutableSet<Block>> { mutableSetOf() }
+    val supported = mutableMapOf<Block, Set<Block>>()
+
     val safe: Set<Block>
         get() = safeBlocks
 
@@ -50,8 +51,9 @@ internal class Plane(ground: Block) {
 
         val supporting = levels[topLevel].filterIndexed { i, _ -> i in coordinates }.filterNotNull().toSet()
         supporting.singleOrNull()?.let(safeBlocks::remove)
+        supporting.forEach { supports[it].add(block) }
+        supported[block] = supporting
         safeBlocks.add(block)
-//        supporting.forEach { support[it].add(block) }
 
         for (l in topLevel+1..topLevel+block.height) {
             val level = when {
@@ -73,6 +75,22 @@ fun main() {
     val ground = Block(Point(minX, minY, 0), Point(maxX, maxY, 0))
     val plane = Plane(ground)
     input.forEach(plane::addBlock)
-    println(plane.safe.size)
+    println("Part I: ${plane.safe.size}")
+
+    fun getFalling(block: Block): Set<Block> {
+        val fallen = mutableSetOf<Block>()
+        var pending = setOf(block)
+        while (pending.isNotEmpty()) {
+            fallen.addAll(pending)
+            pending = pending.flatMap{ plane.supports[it] }.filter { plane.supported[it]!!.all(fallen::contains) }.toSet()
+        }
+
+        fallen.remove(block)
+        return fallen
+    }
+
+    val unsafe = input subtract plane.safe
+    val fallenCount = unsafe.sumOf { getFalling(it).size }
+    println("Part II: $fallenCount")
 }
 
