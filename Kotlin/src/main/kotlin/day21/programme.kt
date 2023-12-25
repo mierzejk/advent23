@@ -7,7 +7,7 @@ import kotlin.math.min
 
 var STEPS = 64
 
-internal class Garden(array: MutableList<Short>, private val divisor: Int = STEPS % 2, stride: Int, height: Int? = null): MutableBoard<Short>(array, stride, height) {
+internal class Garden(array: MutableList<Short>, stride: Int, height: Int? = null, private val divisor: Int = STEPS % 2): MutableBoard<Short>(array, stride, height) {
     override fun getAdjacent(index: Int) = super.getAdjacent(index).filter { Short.MAX_VALUE == array[it] }
 
     override fun toString() = array.map { when(it) {
@@ -85,12 +85,12 @@ fun main() {
     val totalSteps = 26501365
     val euclidean = totalSteps / height
     println("Part II $totalSteps steps = $euclidean * $stride + ${totalSteps % height}")
-    STEPS = 501
+    STEPS = 197
     garden = Garden(ArrayList(array), stride, height)
 //    val oddPlots = 7336L
     val oddPlots = getPlotCount()
     println("Odd plot count: $oddPlots")
-    STEPS = 500
+    STEPS = 196
     garden = Garden(ArrayList(array), stride, height)
 //    val evenPlots = 7327L
     val evenPlots = getPlotCount()
@@ -98,7 +98,7 @@ fun main() {
     assert(height == stride)
     var total = oddPlots
 
-    for (i in 1..euclidean) {
+    for (i in 1..<euclidean) {
         total += i * 4 * when (i % 2) {
             1 -> evenPlots
             else -> oddPlots
@@ -107,7 +107,7 @@ fun main() {
     // 600090495422936 → too low     / 1..(totalSteps / height)
     // 600090522932119
 
-    println("Total1: $total")
+    println("Total-1: $total")
 
     // Top gardens, all even
     STEPS = 130 // Starting point + 130
@@ -138,25 +138,51 @@ fun main() {
     println("Up: $downPlots")
 
     total += leftPlots + upPlots + rightPlots + downPlots
+    println("Total-2: $total")
 
     // Diagonal gardens, all even (65+65)
+    STEPS = 130 + 65
     fun diagonal(a: List<Short>, b: List<Short>) = zipArrays(a, b).filter { -1 < it && it < Short.MAX_VALUE }.count { 0 == it % 2 }.toLong()
     // Left / Up
     val leftUpPlots = diagonal(gardenLeft, gardenUp)
     println("Left-Up: $leftUpPlots")
+
+    garden = Garden(ArrayList(array), stride, height)
+    startingPoint = array.lastIndex
+    val leftUpPlotsBis = getPlotCount()
+    println("Left-Up bis: $leftUpPlotsBis")
+
     // Right / Up
     val rightUpPlots = diagonal(gardenRight, gardenUp)
     println("Right-Up: $rightUpPlots")
+
+    garden = Garden(ArrayList(array), stride, height)
+    startingPoint = array.size - stride
+    val rightUpPlotsBis = getPlotCount()
+    println("Right-Up bis: $rightUpPlotsBis")
+
     // Right / Down
     val rightDownPlots = diagonal(gardenRight, gardenDown)
     println("Right-Down: $rightDownPlots")
+
+    garden = Garden(ArrayList(array), stride, height)
+    startingPoint = 0
+    val rightDownPlotsBis = getPlotCount()
+    println("Right-Down bis: $rightDownPlotsBis")
+
     // Left / Down
     val leftDownPlots = diagonal(gardenLeft, gardenDown)
     println("Left-Down: $leftDownPlots")
 
+    garden = Garden(ArrayList(array), stride, height)
+    startingPoint = stride - 1
+    val leftDownPlotsBis = getPlotCount()
+    println("Left-Down bis: $leftDownPlotsBis")
+
     // Sum up
-    var multiplier = euclidean / 4
+    var multiplier = (euclidean / 4) - 1
     total += listOf(leftUpPlots, rightUpPlots, rightDownPlots, leftDownPlots).sumOf { it * multiplier }
+    println("Total-3: $total")
 
     // Oblique reminders
     STEPS = 130 - 66
@@ -184,5 +210,5 @@ fun main() {
     multiplier += 1
     total += listOf(leftUpOblique, rightUpOblique, rightDownOblique, leftDownOblique).sumOf { it * multiplier }
 
-    println(total)
+    println("Total-4: $total")
 }
