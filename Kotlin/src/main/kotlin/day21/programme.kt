@@ -104,8 +104,8 @@ fun main() {
             else -> oddPlots
         }
     }
-    // 600090495422936 → too low     / 1..(totalSteps / height)
     // 600090522932119
+    // 600086050079119 - Total-4
 
     println("Total-1: $total")
 
