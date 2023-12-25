@@ -1,5 +1,6 @@
 package day21
 
+@Suppress("MemberVisibilityCanBePrivate")
 internal open class Board<T>(val array: List<T>, val stride: Int, height: Int? = null) {
     private val lastButStride = array.lastIndex - stride
     private val adjacentIndices = listOf(::indexLeft::invoke, ::indexUp::invoke, ::indexRight::invoke, ::indexDown::invoke)
@@ -31,6 +32,7 @@ internal open class Board<T>(val array: List<T>, val stride: Int, height: Int? =
     override fun toString() = array.map(Any?::toString).chunked(stride).joinToString("\n") { it.joinToString(" ") }
 }
 
+@Suppress("MemberVisibilityCanBePrivate")
 internal open class MutableBoard<T>(protected val mutableArray: MutableList<T>, stride: Int, height: Int? = null)
     : Board<T>(mutableArray, stride, height) {
         operator fun set(index: Int, value: T) { mutableArray[index] = value }
