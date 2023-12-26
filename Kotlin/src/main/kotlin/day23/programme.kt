@@ -55,6 +55,7 @@ fun main() {
         return adjacent.map { Path(node, it) }
     }
 
+    // Breadth-First Search
     val queue = ArrayDeque<Path>().apply { add(Path(root, maze.indexDown(root.index))) }
     while (queue.isNotEmpty()) {
         val path = queue.removeFirst()
@@ -65,6 +66,33 @@ fun main() {
             queue.addAll(outcoming)
     }
 
-    print(nodes)
+    // assert(maze is DAG)
+    // Topological sort - Depth-First Search
+    val stack = ArrayDeque<Node>(nodes.size)
+    val distance = HashMap<Int, Int>(nodes.size)
+    fun visit(node: Node) {
+        if (node.index in distance)
+            return
+
+        distance[node.index] = 0
+        node.outcoming.map { it.to }.forEach(::visit)
+        stack.addFirst(node)
+    }
+    visit(root)
+
+    // Longest path
+    while(stack.isNotEmpty()) {
+        val node = stack.removeFirst()
+        val dist = distance[node.index]!!
+        val outcoming = node.outcoming.groupBy { it.to.index }.map {
+            (index, arcs) -> index to arcs.maxOf { dist + it.length } }
+        for ((index, dst) in outcoming) {
+            if (distance[index]!! < dst)
+                distance[index] = dst
+        }
+    }
+
+    // Part I
+    print(distance[sink.index])
 }
 
