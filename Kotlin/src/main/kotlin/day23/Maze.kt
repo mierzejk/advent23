@@ -1,7 +1,6 @@
 package day23
 
 import day21.Board
-import kotlin.reflect.KFunction1
 
 class Maze(array: List<Char>, stride: Int, height: Int? = null): Board<Char>(array, stride, height) {
     private val allowed = "<^>v".map{ listOf('.', it) }
