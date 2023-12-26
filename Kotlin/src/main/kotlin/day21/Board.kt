@@ -3,8 +3,9 @@ package day21
 @Suppress("MemberVisibilityCanBePrivate")
 open class Board<T>(val array: List<T>, val stride: Int, height: Int? = null) {
     private val lastButStride = array.lastIndex - stride
-    private val adjacentIndices = listOf(::indexLeft::invoke, ::indexUp::invoke, ::indexRight::invoke, ::indexDown::invoke)
+    protected val adjacentIndices = listOf(::indexLeft::invoke, ::indexUp::invoke, ::indexRight::invoke, ::indexDown::invoke)
     val height = height ?: (array.size / stride)
+    val size = array.size
 
     init { assert (this.height * stride == array.size) }
 
