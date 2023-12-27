@@ -1,6 +1,7 @@
 package day23
 
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 internal data class Node(val index: Int) {
     val outcoming = mutableSetOf<Arc>()
@@ -102,11 +103,8 @@ fun main() {
 
     // Part II
     class Route(val head: Node, val tail: Set<Int>, val length: Int) {
-        // Assumption - there is no loops.
-        fun expand(): List<Route> {
-            return head.outcoming.filterNot { it.to.index in tail }.map {
-                Route(it.to, tail + head.index, it.length + length) }
-        }
+        fun expand() = head.outcoming.filterNot { it.to.index in tail }.map {
+            Route(it.to, tail + head.index, it.length + length) }
     }
 
     nodes.clear()
@@ -123,13 +121,14 @@ fun main() {
     val completeRoutes = mutableListOf<Route>()
     val routeQueue = ArrayDeque<Route>()
     routeQueue.add(Route(root, emptySet(), 0))
-    while(routeQueue.isNotEmpty()) {
+    val timeit = measureTimeMillis { while (routeQueue.isNotEmpty()) {
         val routes = routeQueue.removeFirst().expand()
         val (finished, pending) = routes.partition { it.head === sink }
         completeRoutes.addAll(finished)
         routeQueue.addAll(pending)
-    }
+    } }
 
-    print(completeRoutes.maxOf(Route::length))
+    println(completeRoutes.maxOf(Route::length))
+    println("Took $timeit ms.")
 }
 
