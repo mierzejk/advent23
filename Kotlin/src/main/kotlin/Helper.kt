@@ -20,8 +20,10 @@ fun<T: Comparable<T>> List<T>.bisectDistinct(element: T): List<T> {
     var index = binarySearch(element)
     if (index < 0)
         index = -index - 1
-    else if (0 == get(index).compareTo(element))
+    else {
+        assert(0 == get(index).compareTo(element))
         return this
+    }
 
     return buildList {
         addAll(this@bisectDistinct.slice(0..<index))
