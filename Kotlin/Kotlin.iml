@@ -14,5 +14,6 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="jetbrains.kotlinx.coroutines.core" level="project" />
     <orderEntry type="library" name="jetbrains.kotlinx.coroutines.core.jvm" level="project" />
+    <orderEntry type="library" name="la4j" level="project" />
   </component>
 </module>
