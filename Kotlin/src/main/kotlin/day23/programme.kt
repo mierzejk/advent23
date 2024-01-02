@@ -131,4 +131,3 @@ fun main() {
     println(completeRoutes.maxOf(Route::length))
     println("Took $timeit ms.")
 }
-
