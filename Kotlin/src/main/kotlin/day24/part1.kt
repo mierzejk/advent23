@@ -22,8 +22,12 @@ internal data class Hailstone(val position: Point, val velocity: Vector)
 internal fun getScalars(a: Hailstone, b: Hailstone): Point? {
     // Parallel → cross product == 0
     if (a.velocity.x * b.velocity.y == b.velocity.x * a.velocity.y) {
-        val opposite = a.velocity * b.velocity < 0.0
-        return null // TODO
+        val opposite = a.velocity * b.velocity < 0.0 // dot product
+        val vector = Vector(a.position.x - b.position.x, a.position.y - b.position.y)
+        val parallelA = a.velocity.x * vector.y == vector.x * a.velocity.y
+        val parallelB = b.velocity.x * vector.y == vector.x * b.velocity.y
+        assert (!parallelA && !parallelB)
+        return null
     }
 
     val eqx = listOf(a.velocity.x, -b.velocity.x, b.position.x - a.position.x)
