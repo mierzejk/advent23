@@ -11,7 +11,7 @@ fun LCM(values: Collection<ULong>) = with(values.iterator()) {
     object { var result = next() }.apply { forEachRemaining { result = LCM(result, it) } }.result
 }
 
-fun<T> MutableCollection<T>.pop() = with(iterator()) { next().also { remove() } }
+fun<T> MutableIterable<T>.pop() = with(iterator()) { next().also { remove() } }
 
 fun<T: Comparable<T>> List<T>.bisectDistinct(element: T): List<T> {
     if (isEmpty())
