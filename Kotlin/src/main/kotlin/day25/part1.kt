@@ -67,5 +67,5 @@ fun main() {
 
     val bestCutSizeOfT = bestCut!!.second.ids.size.toLong()
     println("Min-cut weight: $minCut / size of T: $bestCutSizeOfT")
-    println("Product = ${bestCutSizeOfT * (graphSize - bestCutSizeOfT)}")
+    println("Product = ${bestCutSizeOfT * (graphSize - bestCutSizeOfT)}") // 583338
 }
