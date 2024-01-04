@@ -28,7 +28,7 @@ fun main() {
     fun getOrPutVertex(vararg ids: String) = ids.let(Array<out String>::toList).let { vertices.getOrPut(it.cs()) { Vertex(it) } }
 
     fun mergeVertices(a: Vertex, b: Vertex) {
-        val union = a.adjacentEdges union b.adjacentEdges
+        val union = a.adjacentEdges union b.adjacentEdges subtract setof(a.a)
         val adjacentBoth =  union.filter { it.first in a.adjacent intersect b.adjacent }.toSet()
         val adjacentOnlyA = a.adjacentEdges subtract adjacentBoth
         val adjacentOnlyB = b.adjacentEdges subtract adjacentBoth

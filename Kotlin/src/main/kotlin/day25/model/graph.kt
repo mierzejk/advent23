@@ -12,7 +12,7 @@ internal data class Vertex(val id: String): Comparable<Vertex> {
     }
 
 //    val edges: Set<Edge> get() = edgesField.values.map(Pair<*, Edge>::second).toSet()
-    val adjacent: Set<Vertex> get() = edgesField.values.map(Pair<Vertex, *>::first).toSet()
+    val adjacent get() = edgesField.values.map(Pair<Vertex, *>::first).toSet()
     val adjacentEdges get() = edgesField.values.toSet()
 
     constructor(ids: Iterable<String>): this(ids.cs()) { this.ids = when (ids) {
@@ -27,6 +27,7 @@ internal data class Vertex(val id: String): Comparable<Vertex> {
         edgesField.getOrPut(to.id) { Pair(to, it) } }
     fun getOrPutEdge(edge: Edge) = edge.vertices.also { assert(this in it) }.single { this != it }.let {
         edgesField.getOrPut(it.id) { Pair(it, edge) } }
+
 }
 
 internal data class Edge(val vertices: Set<Vertex>, val weight: Int = 1) {
