@@ -5,7 +5,6 @@ import pop
 import java.io.File
 
 internal fun minimumCutPhase(graph: Collection<Vertex>): Triple<Vertex, Vertex, Int> {
-    println(graph.size)
     val remaining: MutableSet<Vertex> = HashSet(graph)
     val connected = LinkedHashMap<Vertex, Int>(remaining.size).apply { set(remaining.pop(), 0) }
     while (remaining.isNotEmpty()) {
@@ -21,10 +20,12 @@ internal fun minimumCutPhase(graph: Collection<Vertex>): Triple<Vertex, Vertex, 
 }
 
 fun main() {
+    /**
+     * [Stoer–Wagner minimum cut algorithm.](https://en.wikipedia.org/wiki/Stoer%E2%80%93Wagner_algorithm)
+     */
     val vertices = mutableMapOf<String, Vertex>()
 
     fun getOrPutVertex(id: String) = vertices.getOrPut(id) { Vertex(listOf(id)) }
-
     fun mergeVertices(a: Vertex, b: Vertex) {
         vertices.remove(a.id)!!.removeEdge(b.id)
         vertices.remove(b.id)!!.removeEdge(a.id)
@@ -48,12 +49,23 @@ fun main() {
             fromVertex.getOrAddEdge(toVertex, weight=1).second.also { toVertex.getOrPutEdge(fromVertex, it) } }
     } }
     var minCut = Int.MAX_VALUE
+    var bestCut: Pair<Vertex, Vertex>? = null
+    val graphSize = vertices.size.toLong()
+    println("Graph size: $graphSize")
     while(1 < vertices.size) {
+        if (1 == vertices.size % 10)
+            println("Graph size: ${vertices.size}")
+
         val (cutS, cutT, cutWeight) = minimumCutPhase(vertices.values)
-        if (cutWeight < minCut)
+        if (cutWeight < minCut) {
             minCut = cutWeight
+            bestCut = Pair(cutS, cutT)
+        }
 
         mergeVertices(cutS, cutT)
     }
-    println(minCut)
+
+    val bestCutSizeOfT = bestCut!!.second.ids.size.toLong()
+    println("Min-cut weight: $minCut / size of T: $bestCutSizeOfT")
+    println("Product = ${bestCutSizeOfT * (graphSize - bestCutSizeOfT)}")
 }
