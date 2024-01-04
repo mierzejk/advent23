@@ -24,7 +24,7 @@ internal data class Vertex(val id: String): Comparable<Vertex> {
     fun getOrAddEdge(to: Vertex, weight: Int) = edgesField.getOrPut(to.id) { Pair(to, Edge(this, to, weight)) }
     fun getOrPutEdge(to: Vertex, edge: Edge) = edge.also { assert (this in it.vertices) }.let {
         edgesField.getOrPut(to.id) { Pair(to, it) } }
-    fun removeEdge(id: String) = edgesField.remove(id)!!
+    fun removeEdge(id: String) = edgesField.remove(id)
     fun removeEdge(edge: Edge) = edgesField.remove(edge.vertices.map(Vertex::id).single { it != id })!!
 
 }

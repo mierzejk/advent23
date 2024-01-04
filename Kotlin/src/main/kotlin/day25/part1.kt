@@ -5,6 +5,7 @@ import pop
 import java.io.File
 
 internal fun minimumCutPhase(graph: Collection<Vertex>): Triple<Vertex, Vertex, Int> {
+    println(graph.size)
     val remaining: MutableSet<Vertex> = HashSet(graph)
     val connected = LinkedHashMap<Vertex, Int>(remaining.size).apply { set(remaining.pop(), 0) }
     while (remaining.isNotEmpty()) {
@@ -38,19 +39,21 @@ fun main() {
             merged.getOrAddEdge(vertex, weight=weight).second.also { vertex.getOrPutEdge(merged, it) }
         }
         vertices[merged.id] = merged
-
-        println(vertices)
     }
 
-    File("src/main/resources/test.txt").useLines { file -> file.forEach { line ->
+    File("src/main/resources/day_25_input.txt").useLines { file -> file.forEach { line ->
         val (from, toList) = line.split(":")
         val fromVertex = getOrPutVertex(from.trim())
         toList.split(" ").filterNot { it.isEmpty() }.map(::getOrPutVertex).forEach { toVertex ->
             fromVertex.getOrAddEdge(toVertex, weight=1).second.also { toVertex.getOrPutEdge(fromVertex, it) } }
     } }
+    var minCut = Int.MAX_VALUE
     while(1 < vertices.size) {
         val (cutS, cutT, cutWeight) = minimumCutPhase(vertices.values)
+        if (cutWeight < minCut)
+            minCut = cutWeight
+
         mergeVertices(cutS, cutT)
     }
-    println(vertices)
+    println(minCut)
 }
