@@ -1,6 +1,5 @@
 package day25
 
-import day25.model.Edge
 import day25.model.Vertex
 import pop
 import java.io.File
@@ -22,29 +21,36 @@ internal fun minimumCutPhase(graph: Collection<Vertex>): Triple<Vertex, Vertex, 
 
 fun main() {
     val vertices = mutableMapOf<String, Vertex>()
-//    val edges = mutableSetOf<Edge>()
 
     fun getOrPutVertex(id: String) = vertices.getOrPut(id) { Vertex(listOf(id)) }
-    fun getOrPutVertex(vararg ids: String) = ids.let(Array<out String>::toList).let { vertices.getOrPut(it.cs()) { Vertex(it) } }
 
     fun mergeVertices(a: Vertex, b: Vertex) {
-        val union = a.adjacentEdges union b.adjacentEdges subtract setof(a.a)
+        vertices.remove(a.id)!!.removeEdge(b.id)
+        vertices.remove(b.id)!!.removeEdge(a.id)
+        val union = a.adjacentEdges + b.adjacentEdges
         val adjacentBoth =  union.filter { it.first in a.adjacent intersect b.adjacent }.toSet()
-        val adjacentOnlyA = a.adjacentEdges subtract adjacentBoth
-        val adjacentOnlyB = b.adjacentEdges subtract adjacentBoth
-        println(adjacentBoth)
+        val adjacentOnlyA = (a.adjacentEdges - adjacentBoth).associate { it.first to it.second.weight }
+        val adjacentOnlyB = (b.adjacentEdges - adjacentBoth).associate { it.first to it.second.weight }
+        val grouped= adjacentBoth.groupingBy(Pair<Vertex, *>::first).fold(0) { weight, (_, edge) -> weight + edge.weight }
+        union.forEach { (vertex, edge) -> vertex.removeEdge(edge) }
+        val merged = Vertex(buildSet { addAll(a.ids); addAll(b.ids) })
+        sequenceOf(adjacentOnlyA, adjacentOnlyB, grouped).flatMap { it.asSequence() }.forEach { (vertex, weight) ->
+            merged.getOrAddEdge(vertex, weight=weight).second.also { vertex.getOrPutEdge(merged, it) }
+        }
+        vertices[merged.id] = merged
+
+        println(vertices)
     }
 
     File("src/main/resources/test.txt").useLines { file -> file.forEach { line ->
         val (from, toList) = line.split(":")
         val fromVertex = getOrPutVertex(from.trim())
-//        edges.addAll(toList.split(" ").filterNot { it.isEmpty() }.map(::getOrPutVertex).map { toVertex ->
-//            fromVertex.getOrAddEdge(toVertex).second.also { toVertex.getOrPutEdge(fromVertex, it) } })
         toList.split(" ").filterNot { it.isEmpty() }.map(::getOrPutVertex).forEach { toVertex ->
-            fromVertex.getOrAddEdge(toVertex).second.also { toVertex.getOrPutEdge(fromVertex, it) } }
+            fromVertex.getOrAddEdge(toVertex, weight=1).second.also { toVertex.getOrPutEdge(fromVertex, it) } }
     } }
     while(1 < vertices.size) {
         val (cutS, cutT, cutWeight) = minimumCutPhase(vertices.values)
         mergeVertices(cutS, cutT)
     }
+    println(vertices)
 }

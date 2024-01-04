@@ -4,14 +4,13 @@ import day25.cs
 
 internal data class Vertex(val id: String): Comparable<Vertex> {
     private val edgesField = mutableMapOf<String, Pair<Vertex, Edge>>()
-    private lateinit var ids: Set<String>
+    lateinit var ids: Set<String>
 
     init {
         if (!::ids.isInitialized)
             ids = id.split(',').toSet()
     }
 
-//    val edges: Set<Edge> get() = edgesField.values.map(Pair<*, Edge>::second).toSet()
     val adjacent get() = edgesField.values.map(Pair<Vertex, *>::first).toSet()
     val adjacentEdges get() = edgesField.values.toSet()
 
@@ -22,24 +21,24 @@ internal data class Vertex(val id: String): Comparable<Vertex> {
 
     override fun compareTo(other: Vertex) = this.id.compareTo(other.id)
 
-    fun getOrAddEdge(to: Vertex) = edgesField.getOrPut(to.id) { Pair(to, Edge(this, to)) }
-    fun getOrPutEdge(to: Vertex, edge: Edge) = edge.also { this in it.vertices }.let {
+    fun getOrAddEdge(to: Vertex, weight: Int) = edgesField.getOrPut(to.id) { Pair(to, Edge(this, to, weight)) }
+    fun getOrPutEdge(to: Vertex, edge: Edge) = edge.also { assert (this in it.vertices) }.let {
         edgesField.getOrPut(to.id) { Pair(to, it) } }
-    fun getOrPutEdge(edge: Edge) = edge.vertices.also { assert(this in it) }.single { this != it }.let {
-        edgesField.getOrPut(it.id) { Pair(it, edge) } }
+    fun removeEdge(id: String) = edgesField.remove(id)!!
+    fun removeEdge(edge: Edge) = edgesField.remove(edge.vertices.map(Vertex::id).single { it != id })!!
 
 }
 
-internal data class Edge(val vertices: Set<Vertex>, val weight: Int = 1) {
+internal data class Edge(val vertices: Set<Vertex>, val weight: Int) {
     val id = vertices.sorted().joinToString("-", transform = Vertex::id)
 
-    constructor(left: Vertex, right: Vertex, weight: Int = 1): this(setOf(left, right), weight)
+    constructor(left: Vertex, right: Vertex, weight: Int): this(setOf(left, right), weight)
 
     init {
         assert (2 == vertices.size)
     }
 
-    override fun toString() = "$id: $weight"
+    override fun toString() = "[${id.replace("-", "]-[")}]: $weight"
 
     override fun equals(other: Any?) = if (other is Edge) id == other.id else false
 
