@@ -105,3 +105,4 @@ fabric.properties
 hs_err_pid*
 replay_pid*
 /src/main/resources/test.txt
+/src/main/resources/day_*_input.txt
