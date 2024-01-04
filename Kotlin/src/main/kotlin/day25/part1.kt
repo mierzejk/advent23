@@ -31,12 +31,11 @@ fun main() {
         vertices.remove(b.id)!!.removeEdge(a.id)
         val union = a.adjacentEdges + b.adjacentEdges
         val adjacentBoth =  union.filter { it.first in a.adjacent intersect b.adjacent }.toSet()
-        val adjacentOnlyA = (a.adjacentEdges - adjacentBoth).associate { it.first to it.second.weight }
-        val adjacentOnlyB = (b.adjacentEdges - adjacentBoth).associate { it.first to it.second.weight }
+        val adjacentXor = (union - adjacentBoth).associate { it.first to it.second.weight }
         val grouped= adjacentBoth.groupingBy(Pair<Vertex, *>::first).fold(0) { weight, (_, edge) -> weight + edge.weight }
         union.forEach { (vertex, edge) -> vertex.removeEdge(edge) }
         val merged = Vertex(buildSet { addAll(a.ids); addAll(b.ids) })
-        sequenceOf(adjacentOnlyA, adjacentOnlyB, grouped).flatMap { it.asSequence() }.forEach { (vertex, weight) ->
+        sequenceOf(adjacentXor, grouped).flatMap { it.asSequence() }.forEach { (vertex, weight) ->
             merged.getOrAddEdge(vertex, weight=weight).second.also { vertex.getOrPutEdge(merged, it) }
         }
         vertices[merged.id] = merged
