@@ -26,7 +26,6 @@ internal data class Vertex(val id: String): Comparable<Vertex> {
         edgesField.getOrPut(to.id) { Pair(to, it) } }
     fun removeEdge(id: String) = edgesField.remove(id)
     fun removeEdge(edge: Edge) = edgesField.remove(edge.vertices.map(Vertex::id).single { it != id })!!
-
 }
 
 internal data class Edge(val vertices: Set<Vertex>, val weight: Int) {
