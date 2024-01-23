@@ -32,8 +32,5 @@ with open(r'../inputs/day_5_input.txt', r'rt', encoding=r'utf8') as file:
 
             stacks2[to].extend(reversed(ordered))
 
-
-
-
 print('Part I', ''.join(s[-1] for s in stacks1.values() if s))
 print('Part II', ''.join(s[-1] for s in stacks2.values() if s))
