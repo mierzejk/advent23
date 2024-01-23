@@ -10,5 +10,5 @@ scores = {
     r'C Z': 3 + 3
 }
 
-with open(r'../inputs/day_2_input.txt', encoding=r'utf8') as file:
+with open(r'../inputs/day_2_input.txt', r'rt', encoding=r'utf8') as file:
     print(sum(scores[line.rstrip()] for line in file))

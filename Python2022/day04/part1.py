@@ -9,5 +9,5 @@ def to_tuple(s: str) -> tuple[int, int]:
 
 
 if r'__main__' == __name__:
-    with open(r'../inputs/day_4_input.txt', encoding=r'utf8') as file:
+    with open(r'../inputs/day_4_input.txt', r'rt', encoding=r'utf8') as file:
         print(sum(contains(to_tuple(a), to_tuple(b)) for a, b in map(lambda line: line.rstrip().split(r','), file)))

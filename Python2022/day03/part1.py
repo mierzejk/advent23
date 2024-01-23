@@ -6,6 +6,6 @@ _priority = {k: v for k, v in chain(
     ((chr(i + _ord_A), i) for i in range(27, 53)))}
 
 if r'__main__' == __name__:
-    with open(r'../inputs/day_3_input.txt', encoding=r'utf8') as file:
+    with open(r'../inputs/day_3_input.txt', r'rt', encoding=r'utf8') as file:
         print(sum(map(lambda i: _priority[i.pop()],
                       (set(line[:len(line)//2]) & set(line[len(line)//2:]) for line in map(str.rstrip, file)))))
