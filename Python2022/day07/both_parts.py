@@ -38,7 +38,6 @@ with open(r'../inputs/day_7_input.txt', r'rt', encoding=r'utf8') as file:
                     raise ValueError(line)
 
 
-# Part I
 def get_folders(node: Directory, size_limit: int, op: Callable[[int, int], bool]) -> Generator[Directory, None, None]:
     if op(node.size, size_limit):
         yield node
@@ -46,6 +45,7 @@ def get_folders(node: Directory, size_limit: int, op: Callable[[int, int], bool]
         yield from get_folders(child, size_limit, op)
 
 
+# Part I
 print(sum(f.size for f in get_folders(root, 100000, operator.le)))
 
 # Part II
