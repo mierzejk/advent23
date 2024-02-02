@@ -22,7 +22,7 @@ class Position(NamedTuple):
         if 2 == abs(dy):
             dy //= 2
         if 2 == abs(dx):
-            dx /= 2
+            dx //= 2
 
         return self.move(dy, dx)
 
