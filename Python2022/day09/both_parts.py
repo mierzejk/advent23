@@ -26,9 +26,8 @@ class Position(NamedTuple):
 
         return self.move(dy, dx)
 
-
-def not_adjacent(p1: Position, p2: Position) -> bool:
-    return 1 < abs(p1.Y - p2.Y) or 1 < abs(p1.X - p2.X)
+    def not_adjacent(self, p: Self) -> bool:
+        return 1 < abs(self.Y - p.Y) or 1 < abs(self.X - p.X)
 
 
 directions = {
@@ -47,7 +46,7 @@ with open(r'../inputs/day_9_input.txt', r'rt', encoding=r'utf8') as file:
         for i in range(0, steps):
             rope[0] = rope[0].move(*direction)
             for j, knot in enumerate(rope[1:], 1):
-                if not_adjacent(knot, pred := rope[j-1]):
+                if knot.not_adjacent(pred := rope[j-1]):
                     rope[j] = knot = knot.follow(pred)
                     match j:
                         case 1:
