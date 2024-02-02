@@ -1,12 +1,12 @@
 from functools import partial, reduce
-from typing import Any, Callable, Iterable, NamedTuple, Self
+from typing import Callable, Iterable, NamedTuple, Self
 
 
-def fchain(x: Any, f: Callable[[Any], Any]) -> Any:
+def fchain[T, R](x: T, f: Callable[[T], R]) -> R:
     return f(x)
 
 
-def fmap(*args: Callable[[Any], Any]) -> Iterable[Callable[[Any], Any]]:
+def fmap(*args: Callable) -> Iterable[Callable]:
     return map(partial(partial, map), args)
 
 
