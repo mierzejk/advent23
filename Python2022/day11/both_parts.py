@@ -28,7 +28,7 @@ class Monkey:
              {'self': self})
 
     @property
-    def moneky_id(self) -> int:
+    def monkey_id(self) -> int:
         return self.__id
 
     @property
